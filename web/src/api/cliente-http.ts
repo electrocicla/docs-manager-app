@@ -1,4 +1,5 @@
 import type { RespuestaError } from '../types';
+import { config } from '../config';
 
 export class ApiError extends Error {
   constructor(
@@ -20,7 +21,7 @@ export interface OpcionesSolicitud extends RequestInit {
  * Responsabilidad: Manejar comunicación HTTP con el backend
  */
 export class ClienteHttp {
-  constructor(private baseUrl: string = '/api') {}
+  constructor(private baseUrl: string = config.apiUrl) {}
 
   private obtenerToken(): string | null {
     return localStorage.getItem('auth_token');
