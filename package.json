@@ -1,0 +1,29 @@
+{
+  "name": "sr-prevencion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Risk prevention documentation management system",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter web dev\" \"pnpm --filter worker dev\"",
+    "dev:web": "pnpm --filter web dev",
+    "dev:worker": "pnpm --filter worker dev",
+    "dev:setup": "pnpm install && pnpm run db:migrate:local",
+    "build": "pnpm --filter web build && pnpm --filter worker build",
+    "test": "pnpm --filter web test && pnpm --filter worker test",
+    "lint": "pnpm --filter web lint && pnpm --filter worker lint",
+    "deploy": "pnpm run build && pnpm --filter worker deploy",
+    "db:create": "wrangler d1 create sr_d1_db",
+    "db:migrate:local": "wrangler d1 migrations apply sr_d1_db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply sr_d1_db --remote",
+    "r2:create": "wrangler r2 bucket create sr-preven-files"
+  },
+  "workspaces": [
+    "web",
+    "worker"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "wrangler": "^3.78.12"
+  }
+}
