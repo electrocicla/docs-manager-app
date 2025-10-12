@@ -44,7 +44,7 @@ export async function validateCfAccessJwt(request: Request): Promise<JWTPayload 
 
   try {
     // In production, replace with your actual Cloudflare Access team domain
-    const TEAM_DOMAIN = process.env.CF_ACCESS_TEAM_DOMAIN || 'your-team.cloudflareaccess.com';
+    const TEAM_DOMAIN = 'your-team.cloudflareaccess.com'; // TODO: Configure via env
     const JWKS_URL = `https://${TEAM_DOMAIN}/cdn-cgi/access/certs`;
     
     const JWKS = createRemoteJWKSet(new URL(JWKS_URL));

@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import type { Env } from './types';
+import type { Env, Variables } from './types';
 import authRoutes from './routes/auth';
 import filesRoutes from './routes/files';
 import jobsRoutes from './routes/jobs';
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // CORS middleware
 app.use('/*', cors({

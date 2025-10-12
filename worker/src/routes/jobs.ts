@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { Env, AuthContext } from '../types';
+import type { Env, Variables, AuthContext } from '../types';
 import { requireAuth } from '../lib/jwt';
 import {
   createJob,
@@ -13,7 +13,7 @@ import {
   createAuditLog,
 } from '../lib/db';
 
-const jobs = new Hono<{ Bindings: Env }>();
+const jobs = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // Create a new job
 jobs.post('/', requireAuth(['user']), async (c) => {

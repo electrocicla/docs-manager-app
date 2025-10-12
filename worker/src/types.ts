@@ -5,6 +5,11 @@ export interface Env {
   ENVIRONMENT: string;
 }
 
+// Variables de contexto para Hono
+export type Variables = {
+  authContext: AuthContext;
+}
+
 export interface User {
   id: string;
   email: string;

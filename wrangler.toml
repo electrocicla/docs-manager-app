@@ -8,13 +8,14 @@ ENVIRONMENT = "development"
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = "sr_d1_db"
-database_id = "YOUR_DATABASE_ID"
+database_name = "sr-prevencion-db"
+database_id = "a78331db-16a4-4f5c-8133-0e1127069a66"
+migrations_dir = "infra/d1/migrations"
 
 # R2 Storage binding
 [[r2_buckets]]
 binding = "FILESTORE"
-bucket_name = "sr-preven-files"
+bucket_name = "sr-prevencion-files"
 
 [build]
 command = "pnpm --filter worker build"
@@ -26,9 +27,10 @@ route = "sr-prev.tu-dominio.cl/*"
 
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "sr_d1_db_prod"
+database_name = "sr-prevencion-db-prod"
 database_id = "YOUR_PROD_DATABASE_ID"
+migrations_dir = "infra/d1/migrations"
 
 [[env.production.r2_buckets]]
 binding = "FILESTORE"
-bucket_name = "sr-preven-files-prod"
+bucket_name = "sr-prevencion-files-prod"

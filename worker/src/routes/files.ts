@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { Env, AuthContext } from '../types';
+import type { Env, Variables, AuthContext } from '../types';
 import { requireAuth } from '../lib/jwt';
 import {
   createFile,
@@ -17,7 +17,7 @@ import {
   getAllowedMimeTypes,
 } from '../lib/r2';
 
-const files = new Hono<{ Bindings: Env }>();
+const files = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // Upload file
 files.post('/upload', requireAuth(), async (c) => {
@@ -27,12 +27,14 @@ files.post('/upload', requireAuth(), async (c) => {
 
     // Parse multipart form data
     const formData = await c.req.formData();
-    const file = formData.get('file') as File;
+    const fileEntry = formData.get('file');
     const jobId = formData.get('jobId') as string | null;
 
-    if (!file) {
-      return c.json({ error: 'No file provided' }, 400);
+    if (!fileEntry || typeof fileEntry === 'string') {
+      return c.json({ error: 'No file provided or invalid file format' }, 400);
     }
+
+    const file = fileEntry as File;
 
     // Validate file size
     if (!validateFileSize(file.size)) {

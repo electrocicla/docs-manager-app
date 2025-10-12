@@ -12,7 +12,8 @@
     "build": "pnpm --filter web build && pnpm --filter worker build",
     "test": "pnpm --filter web test && pnpm --filter worker test",
     "lint": "pnpm --filter web lint && pnpm --filter worker lint",
-    "deploy": "pnpm run build && pnpm --filter worker deploy",
+    "deploy": "pnpm run build && wrangler deploy",
+    "deploy:production": "pnpm run build && wrangler deploy --env production",
     "db:create": "wrangler d1 create sr_d1_db",
     "db:migrate:local": "wrangler d1 migrations apply sr_d1_db --local",
     "db:migrate:remote": "wrangler d1 migrations apply sr_d1_db --remote",
@@ -24,6 +25,6 @@
   ],
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "wrangler": "^3.78.12"
+    "wrangler": "^4.42.2"
   }
 }

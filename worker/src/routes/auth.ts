@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
-import type { Env, AuthContext } from '../types';
+import type { Env, Variables, AuthContext } from '../types';
 import { generateToken, verifyToken, requireAuth } from '../lib/jwt';
 import { getUserByEmail, createUser, getUserById, createAuditLog } from '../lib/db';
 import { generateId } from '../lib/db';
 
-const auth = new Hono<{ Bindings: Env }>();
+const auth = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // Signup endpoint
 auth.post('/signup', async (c) => {
