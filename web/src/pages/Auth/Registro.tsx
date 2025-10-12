@@ -1,10 +1,11 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield } from 'lucide-react';
+import { Shield, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { Input } from '../../components/ui/Input';
 import { Boton } from '../../components/ui/Boton';
 import { Tarjeta } from '../../components/ui/Tarjeta';
+import { PasswordStrength, evaluatePasswordStrength } from '../../components/ui/PasswordStrength';
 
 /**
  * Página de Registro
@@ -23,6 +24,8 @@ export default function Registro() {
   
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [cargando, setCargando] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [mostrarConfirmPassword, setMostrarConfirmPassword] = useState(false);
 
   const validarFormulario = (): boolean => {
     const nuevosErrores: Record<string, string> = {};
@@ -37,13 +40,21 @@ export default function Registro() {
       nuevosErrores.full_name = 'El nombre completo es requerido';
     }
 
+    // Validación mejorada de contraseña
     if (!formData.password) {
       nuevosErrores.password = 'La contraseña es requerida';
-    } else if (formData.password.length < 6) {
-      nuevosErrores.password = 'La contraseña debe tener al menos 6 caracteres';
+    } else {
+      const passwordValidation = evaluatePasswordStrength(formData.password);
+      
+      if (!passwordValidation.isValid) {
+        nuevosErrores.password = 'La contraseña debe tener al menos 8 caracteres';
+      }
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    // Validación de confirmación de contraseña
+    if (!formData.confirmPassword) {
+      nuevosErrores.confirmPassword = 'Debes confirmar la contraseña';
+    } else if (formData.password !== formData.confirmPassword) {
       nuevosErrores.confirmPassword = 'Las contraseñas no coinciden';
     }
 
@@ -122,25 +133,68 @@ export default function Registro() {
               placeholder="tu@empresa.cl"
             />
 
-            <Input
-              label="Contraseña"
-              type="password"
-              value={formData.password}
-              onChange={(e) => actualizarCampo('password', e.target.value)}
-              error={errores.password}
-              required
-              placeholder="••••••••"
-            />
+            <div className="space-y-2">
+              <div className="relative">
+                <Input
+                  label="Contraseña"
+                  type={mostrarPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={(e) => actualizarCampo('password', e.target.value)}
+                  error={errores.password}
+                  required
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarPassword(!mostrarPassword)}
+                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                  tabIndex={-1}
+                >
+                  {mostrarPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              
+              {/* Indicador de fortaleza */}
+              {formData.password && (
+                <PasswordStrength password={formData.password} className="mt-3" />
+              )}
+            </div>
 
-            <Input
-              label="Confirmar Contraseña"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => actualizarCampo('confirmPassword', e.target.value)}
-              error={errores.confirmPassword}
-              required
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <Input
+                label="Confirmar Contraseña"
+                type={mostrarConfirmPassword ? 'text' : 'password'}
+                value={formData.confirmPassword}
+                onChange={(e) => actualizarCampo('confirmPassword', e.target.value)}
+                error={errores.confirmPassword}
+                required
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarConfirmPassword(!mostrarConfirmPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+                tabIndex={-1}
+              >
+                {mostrarConfirmPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+              
+              {/* Indicador de coincidencia */}
+              {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                <div className="mt-2 flex items-center gap-2 text-sm text-green-700">
+                  <Check className="w-4 h-4" />
+                  <span>Las contraseñas coinciden</span>
+                </div>
+              )}
+            </div>
 
             <Boton
               type="submit"
