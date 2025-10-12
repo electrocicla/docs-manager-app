@@ -3,8 +3,8 @@ import type { RespuestaError } from '../types';
 export class ApiError extends Error {
   constructor(
     message: string,
-    public status: number,
-    public data?: RespuestaError
+    public _status: number,
+    public _data?: RespuestaError
   ) {
     super(message);
     this.name = 'ApiError';

@@ -1,5 +1,5 @@
 import { clienteHttp } from './cliente-http';
-import type { Archivo, RespuestaArchivo } from '../types';
+import type { RespuestaArchivo } from '../types';
 
 /**
  * Servicio de Archivos

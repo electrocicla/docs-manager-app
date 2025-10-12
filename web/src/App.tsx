@@ -1,3 +1,4 @@
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 
@@ -8,6 +9,10 @@ import Registro from './pages/Auth/Registro';
 import DashboardUsuario from './pages/Dashboard/DashboardUsuario';
 import DashboardProfesional from './pages/Dashboard/DashboardProfesional';
 import DashboardAdmin from './pages/Dashboard/DashboardAdmin';
+import DetalleTrabajo from './pages/DetalleTrabajo';
+import CrearTrabajo from './pages/CrearTrabajo';
+import CotizarTrabajo from './pages/CotizarTrabajo';
+import Perfil from './pages/Perfil';
 
 // Component for protected routes
 function RutaProtegida({ 
@@ -52,6 +57,46 @@ function App() {
         element={
           <RutaProtegida rolesPermitidos={['user']}>
             <DashboardUsuario />
+          </RutaProtegida>
+        }
+      />
+
+      {/* Detalle de Trabajo */}
+      <Route
+        path="/trabajo/:id"
+        element={
+          <RutaProtegida>
+            <DetalleTrabajo />
+          </RutaProtegida>
+        }
+      />
+
+      {/* Crear Trabajo */}
+      <Route
+        path="/crear-trabajo"
+        element={
+          <RutaProtegida rolesPermitidos={['user']}>
+            <CrearTrabajo />
+          </RutaProtegida>
+        }
+      />
+
+      {/* Cotizar Trabajo */}
+      <Route
+        path="/trabajo/:id/cotizar"
+        element={
+          <RutaProtegida rolesPermitidos={['professional']}>
+            <CotizarTrabajo />
+          </RutaProtegida>
+        }
+      />
+
+      {/* Perfil */}
+      <Route
+        path="/perfil"
+        element={
+          <RutaProtegida>
+            <Perfil />
           </RutaProtegida>
         }
       />
