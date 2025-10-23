@@ -1,19 +1,23 @@
-# SR-PREVENCION 🛡️
+# SR Manager 🛡️
+
+**Comprehensive role-based document management system for safety and prevention companies**
 
 **Plataforma integral para la gestión de documentación de prevención de riesgos laborales en Chile**
 
-Web platform for occupational risk management and documentation in Chile. Companies can upload files, receive professional review, quotes, and finalized signed reports by certified safety engineers. Built with React, TypeScript, Cloudflare Workers, D1, and R2.
+Platform for occupational risk management and documentation in Chile. Companies can manage workers, upload documents, and admins can review and approve with role-based workflows. Built with React 18, TypeScript, Cloudflare Workers, D1, and R2.
 
-[![Deploy Status](https://img.shields.io/badge/deploy-automated-success)](https://sr-prevencion.pages.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18-61dafb)](https://reactjs.org/)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)](https://sr-prevencion.electrocicla.workers.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6.2-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.3.1-61dafb)](https://reactjs.org/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-f38020)](https://workers.cloudflare.com/)
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue)](./EXECUTIVE_SUMMARY.md)
 
-## 🌐 Producción
+## 🌐 Production Environment
 
-- **Frontend:** [https://sr-prevencion.pages.dev](https://sr-prevencion.pages.dev)
-- **API Backend:** [https://sr-prevencion.electrocicla.workers.dev](https://sr-prevencion.electrocicla.workers.dev)
-- **Health Check:** [https://sr-prevencion.electrocicla.workers.dev/health](https://sr-prevencion.electrocicla.workers.dev/health)
+- **Frontend:** https://sr-prevencion.electrocicla.workers.dev/
+- **API Backend:** https://sr-prevencion.electrocicla.workers.dev/api
+- **Health Check:** https://sr-prevencion.electrocicla.workers.dev/api/health
+- **Status:** ✅ LIVE
 
 ## ✨ Características Principales
 
