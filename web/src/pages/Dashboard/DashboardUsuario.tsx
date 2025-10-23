@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useTrabajos } from '../../hooks/useTrabajos';
+import { useInfoPanelDismiss } from '../../hooks/useInfoPanelDismiss';
 import { Boton } from '../../components/ui/Boton';
 import { Tarjeta } from '../../components/ui/Tarjeta';
 import { TarjetaTrabajo } from '../../components/TarjetaTrabajo';
 import { InfoCard } from '../../components/ui/InfoCard';
 import { ProcessSteps } from '../../components/ui/ProcessSteps';
 import { StatCard, StatsGrid } from '../../components/ui/StatCard';
+import { DashboardSidebar } from '../../components/DashboardSidebar';
 import { 
   Plus, 
   LogOut, 
@@ -23,15 +25,14 @@ import {
   Award,
   TrendingUp,
   Info,
-  ChevronDown,
-  ChevronUp
+  X
 } from 'lucide-react';
 
 export default function DashboardUsuario() {
   const { usuario, cerrarSesion } = useAuth();
   const { trabajos, cargando, cargarTrabajos } = useTrabajos();
   const navigate = useNavigate();
-  const [mostrarInfo, setMostrarInfo] = useState(true);
+  const { isDismissed, isLoading, dismissPanel } = useInfoPanelDismiss('sr-info-panel-dismissed');
 
   useEffect(() => {
     cargarTrabajos();
@@ -46,9 +47,9 @@ export default function DashboardUsuario() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
@@ -69,30 +70,32 @@ export default function DashboardUsuario() {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="container mx-auto px-4 py-8 space-y-8">
-        
-        {/* Sección informativa colapsable */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg shadow-lg overflow-hidden">
-          <div 
-            className="px-6 py-4 cursor-pointer flex justify-between items-center"
-            onClick={() => setMostrarInfo(!mostrarInfo)}
-          >
-            <div className="flex items-center space-x-3">
-              <Info className="w-6 h-6 text-white" />
-              <h2 className="text-xl font-bold text-white">
-                ¿Qué es SR-PREVENCION y cómo puede ayudarte?
-              </h2>
-            </div>
-            {mostrarInfo ? (
-              <ChevronUp className="w-6 h-6 text-white" />
-            ) : (
-              <ChevronDown className="w-6 h-6 text-white" />
-            )}
-          </div>
-          
-          {mostrarInfo && (
-            <div className="px-6 pb-6 space-y-4">
+      {/* Content with Sidebar Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar - Hidden on small screens */}
+        <div className="hidden lg:block w-80 border-r border-gray-200 bg-white shadow-sm overflow-y-auto">
+          <DashboardSidebar onNavigate={(section) => console.log('Navigate to:', section)} />
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+            
+            {/* Sección informativa - Permanently Dismissable */}
+            {!isLoading && !isDismissed && (
+              <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg shadow-lg overflow-hidden">
+                <div className="px-6 py-6 relative">
+                  <button
+                    onClick={dismissPanel}
+                    className="absolute top-4 right-4 p-1 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                    title="Cerrar esta notificación permanentemente"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                  
+                  <div className="flex items-start space-x-3 pr-8">
+                    <Info className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                    <div className="space-y-4">
               <p className="text-white text-lg leading-relaxed">
                 SR-PREVENCION es tu plataforma integral para gestionar todos los aspectos de <strong>prevención de riesgos laborales</strong> que exige la normativa chilena. 
                 Conectamos empresas con <strong>ingenieros especializados en prevención de riesgos</strong> certificados para cumplir con las obligaciones ante el SEREMI de Salud.
@@ -121,9 +124,15 @@ export default function DashboardUsuario() {
                   </p>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+
+                      <p className="text-white text-sm italic">
+                        💡 Puedes cerrar este panel de forma permanente haciendo clic en el icono X. Una vez cerrado, no volverá a aparecer.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
         {/* Estadísticas - Enhanced with Phase 6 Features */}
         <div>
@@ -319,9 +328,11 @@ export default function DashboardUsuario() {
             <Plus className="w-6 h-6 mr-2" />
             Crear Nueva Solicitud
           </Boton>
-        </div>
+            </div>
 
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
