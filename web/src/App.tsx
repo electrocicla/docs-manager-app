@@ -18,6 +18,7 @@ import Perfil from './pages/Perfil';
 import CompaniesPage from './pages/CompaniesPage';
 import CompanyDetailsPage from './pages/CompanyDetailsPage';
 import WorkerProfilePage from './pages/WorkerProfilePage';
+import AdminDocumentReviewPage from './pages/AdminDocumentReviewPage';
 
 // Component for protected routes
 function RutaProtegida({ 
@@ -150,6 +151,15 @@ function App() {
         element={
           <RutaProtegida>
             <WorkerProfilePage />
+          </RutaProtegida>
+        }
+      />
+
+      <Route
+        path="/admin/documents"
+        element={
+          <RutaProtegida rolesPermitidos={['admin']}>
+            <AdminDocumentReviewPage />
           </RutaProtegida>
         }
       />

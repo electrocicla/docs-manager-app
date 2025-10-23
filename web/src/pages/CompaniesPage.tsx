@@ -5,7 +5,7 @@ import { useCompany } from '../hooks/useCompanyManager';
 import CompanyList from '../components/CompanyList';
 import CompanyForm from '../components/CompanyForm';
 import { Boton } from '../components/ui/Boton';
-import { LogOut, ArrowLeft, AlertCircle } from 'lucide-react';
+import { LogOut, ArrowLeft, AlertCircle, Shield } from 'lucide-react';
 import type { Company } from '../types/company';
 
 export default function CompaniesPage() {
@@ -102,6 +102,15 @@ export default function CompaniesPage() {
                 <p className="text-sm text-gray-600">Welcome back</p>
                 <p className="font-semibold text-gray-900">{usuario?.full_name}</p>
               </div>
+              {usuario?.role === 'admin' && (
+                <button
+                  onClick={() => navigate('/admin/documents')}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Admin Panel</span>
+                </button>
+              )}
               <Boton variante="secondary" onClick={cerrarSesion}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out

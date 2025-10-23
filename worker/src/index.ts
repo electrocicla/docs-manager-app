@@ -7,6 +7,7 @@ import jobsRoutes from './routes/jobs';
 import companiesRoutes from './routes/companies';
 import workersRoutes from './routes/workers';
 import documentsRoutes from './routes/documents';
+import r2Routes from './routes/r2';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -30,6 +31,7 @@ app.route('/api/jobs', jobsRoutes);
 app.route('/api/companies', companiesRoutes);
 app.route('/api/workers', workersRoutes);
 app.route('/api/documents', documentsRoutes);
+app.route('/api/r2', r2Routes);
 
 // 404 handler
 app.notFound((c) => {
