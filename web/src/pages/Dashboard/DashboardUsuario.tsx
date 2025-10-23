@@ -74,7 +74,7 @@ export default function DashboardUsuario() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar - Hidden on small screens */}
         <div className="hidden lg:block w-80 border-r border-gray-200 bg-white shadow-sm overflow-y-auto">
-          <DashboardSidebar onNavigate={(section) => console.log('Navigate to:', section)} />
+          <DashboardSidebar />
         </div>
 
         {/* Main Content */}
