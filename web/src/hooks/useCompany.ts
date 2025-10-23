@@ -124,7 +124,7 @@ export function useWorkers(companyId: string) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/companies/${companyId}/workers`, {
+      const response = await fetch(`${config.apiUrl}/workers?companyId=${companyId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -133,7 +133,7 @@ export function useWorkers(companyId: string) {
       if (!response.ok) throw new Error('Error al cargar trabajadores');
       
       const data = await response.json();
-      setWorkers(data);
+      setWorkers(data.data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -145,7 +145,7 @@ export function useWorkers(companyId: string) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/companies/${companyId}/workers`, {
+      const response = await fetch(`${config.apiUrl}/workers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,12 +167,35 @@ export function useWorkers(companyId: string) {
     }
   }, [companyId]);
 
+  const deleteWorker = useCallback(async (workerId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${config.apiUrl}/workers/${workerId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      
+      if (!response.ok) throw new Error('Error al eliminar trabajador');
+      
+      setWorkers(prev => prev.filter(w => w.id !== workerId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     workers,
     loading,
     error,
     fetchWorkers,
     createWorker,
+    deleteWorker,
   };
 }
 
