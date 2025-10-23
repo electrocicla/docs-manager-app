@@ -125,7 +125,7 @@ export default function DashboardUsuario() {
           )}
         </div>
 
-        {/* Estadísticas */}
+        {/* Estadísticas - Enhanced with Phase 6 Features */}
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Resumen de Actividad</h2>
           <StatsGrid>
@@ -158,6 +158,20 @@ export default function DashboardUsuario() {
               description="Requieren atención"
             />
           </StatsGrid>
+          
+          {/* Phase 6 Features Announcement */}
+          <div className="mt-6 bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500 p-4 rounded-lg">
+            <h3 className="font-semibold text-green-900 mb-2 flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2" />
+              ✨ Nuevas Features Phase 6
+            </h3>
+            <p className="text-green-800 text-sm">
+              • Gestión avanzada de documentos con R2 Cloud Storage
+              • Panel de administrador para revisar y aprobar documentos
+              • Control de acceso basado en roles (Admin/Usuario)
+              • Sistema de comentarios y revisión de documentos
+            </p>
+          </div>
         </div>
 
         {/* Mis Trabajos */}
