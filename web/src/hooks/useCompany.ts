@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Company, Worker, WorkerDocument, WorkerProfile } from '../types/company';
+import { Company, Worker, WorkerProfile } from '../types/company';
 import { config } from '../config';
 
 export function useCompanies() {

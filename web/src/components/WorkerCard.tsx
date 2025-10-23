@@ -1,4 +1,4 @@
-import { User, Mail, Phone, FileText } from 'lucide-react';
+import { User, Mail, Phone } from 'lucide-react';
 import type { Worker } from '../types/company';
 
 interface WorkerCardProps {

@@ -4,6 +4,9 @@ import type { Env, Variables } from './types';
 import authRoutes from './routes/auth';
 import filesRoutes from './routes/files';
 import jobsRoutes from './routes/jobs';
+import companiesRoutes from './routes/companies';
+import workersRoutes from './routes/workers';
+import documentsRoutes from './routes/documents';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -24,6 +27,9 @@ app.get('/health', (c) => {
 app.route('/api/auth', authRoutes);
 app.route('/api/files', filesRoutes);
 app.route('/api/jobs', jobsRoutes);
+app.route('/api/companies', companiesRoutes);
+app.route('/api/workers', workersRoutes);
+app.route('/api/documents', documentsRoutes);
 
 // 404 handler
 app.notFound((c) => {

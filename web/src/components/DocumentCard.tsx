@@ -2,13 +2,6 @@ import { Download, MoreVertical, Clock, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import type { WorkerDocument, WorkerDocumentType, DocumentStatus } from '../types/company';
 
-interface DocumentStatusIndicatorProps {
-  status: DocumentStatus;
-  emissionDate?: string;
-  expiryDate?: string;
-  showDaysRemaining?: boolean;
-}
-
 /**
  * Calcula los días restantes hasta el vencimiento
  */
