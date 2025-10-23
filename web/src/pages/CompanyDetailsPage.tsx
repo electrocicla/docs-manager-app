@@ -191,6 +191,7 @@ export default function CompanyDetailsPage() {
           <WorkerList
             workers={workers}
             loading={workersLoading}
+            companyId={companyId}
             onCreateClick={handleCreateClick}
             onEditClick={handleEditClick}
             onDeleteClick={handleDeleteClick}

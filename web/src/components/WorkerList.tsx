@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Edit2, Trash2, User } from 'lucide-react';
 import { WorkerCard } from './WorkerCard';
 import type { Worker } from '../types/company';
@@ -6,6 +7,7 @@ import type { Worker } from '../types/company';
 interface WorkerListProps {
   workers: Worker[];
   loading: boolean;
+  companyId?: string;
   onCreateClick: () => void;
   onEditClick: (worker: Worker) => void;
   onDeleteClick: (worker: Worker) => void;
@@ -14,10 +16,12 @@ interface WorkerListProps {
 export default function WorkerList({
   workers,
   loading,
+  companyId,
   onCreateClick,
   onEditClick,
   onDeleteClick,
 }: WorkerListProps) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ACTIVE');
 
@@ -145,10 +149,15 @@ export default function WorkerList({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWorkers.map(worker => (
             <div key={worker.id} className="relative group">
-              <WorkerCard
-                worker={worker}
-                onSelect={() => {}} // No implementado aquí
-              />
+              <div
+                onClick={() => companyId && navigate(`/company/${companyId}/worker/${worker.id}`)}
+                className="cursor-pointer"
+              >
+                <WorkerCard
+                  worker={worker}
+                  onSelect={() => {}}
+                />
+              </div>
               
               {/* Acciones rápidas en hover */}
               <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-end p-4 space-x-2">

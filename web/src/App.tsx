@@ -14,6 +14,11 @@ import CrearTrabajo from './pages/CrearTrabajo';
 import CotizarTrabajo from './pages/CotizarTrabajo';
 import Perfil from './pages/Perfil';
 
+// New Pages - SR Manager
+import CompaniesPage from './pages/CompaniesPage';
+import CompanyDetailsPage from './pages/CompanyDetailsPage';
+import WorkerProfilePage from './pages/WorkerProfilePage';
+
 // Component for protected routes
 function RutaProtegida({ 
   children, 
@@ -117,6 +122,34 @@ function App() {
         element={
           <RutaProtegida rolesPermitidos={['admin']}>
             <DashboardAdmin />
+          </RutaProtegida>
+        }
+      />
+
+      {/* SR Manager Routes */}
+      <Route
+        path="/companies"
+        element={
+          <RutaProtegida>
+            <CompaniesPage />
+          </RutaProtegida>
+        }
+      />
+
+      <Route
+        path="/company/:companyId"
+        element={
+          <RutaProtegida>
+            <CompanyDetailsPage />
+          </RutaProtegida>
+        }
+      />
+
+      <Route
+        path="/company/:companyId/worker/:workerId"
+        element={
+          <RutaProtegida>
+            <WorkerProfilePage />
           </RutaProtegida>
         }
       />
