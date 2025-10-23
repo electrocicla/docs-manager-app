@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Loader, Upload, FileText, Calendar } from 'lucide-react';
+import { uploadDocumentFiles } from '../utils/r2-storage';
 import type { WorkerDocumentType } from '../types/company';
 
 interface DocumentUploadFormProps {
@@ -131,6 +132,13 @@ export default function DocumentUploadForm({
 
     setSubmitting(true);
     try {
+      // Upload files to R2
+      await uploadDocumentFiles(
+        files.front!,
+        files.back
+      );
+
+      // Call onSubmit with file data (API will handle file keys)
       await onSubmit({
         document_type_id: formData.document_type_id,
         emission_date: formData.emission_date || undefined,

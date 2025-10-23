@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useAdminDocuments } from '../hooks/useCompany';
 import { Boton } from '../components/ui/Boton';
+import { generateSignedDownloadUrl } from '../utils/r2-storage';
 import {
   ArrowLeft,
   LogOut,
@@ -30,6 +32,8 @@ interface FilteredDocument extends DocumentWithWorkerInfo {
 export default function AdminDocumentReviewPage() {
   const { usuario, cerrarSesion } = useAuth();
   const navigate = useNavigate();
+  const { documents: apiDocuments, loading: apiLoading, fetchPendingDocuments, updateDocumentStatus } = useAdminDocuments();
+  
   const [documents, setDocuments] = useState<FilteredDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -53,103 +57,24 @@ export default function AdminDocumentReviewPage() {
     }
   }, [usuario, navigate]);
 
-  // Cargar documentos
-  const fetchDocuments = async () => {
-    try {
-      setLoading(true);
-      setError(undefined);
+  // Cargar documentos desde la API
+  useEffect(() => {
+    fetchPendingDocuments();
+  }, [fetchPendingDocuments]);
 
-      // TODO: Reemplazar con llamada real a API
-      // const response = await fetch(`${config.apiUrl}/documents/pending`, {
-      //   headers: {
-      //     Authorization: `Bearer ${token}`,
-      //   },
-      // });
-      // const data = await response.json();
-
-      // Mock data para demostración
-      const mockData: FilteredDocument[] = [
-        {
-          id: 'doc-1',
-          worker_id: 'worker-1',
-          document_type_id: 'cedula',
-          status: 'PENDING',
-          emission_date: '2025-09-15',
-          expiry_date: '2030-09-15',
-          file_r2_key: 'files/cedula-1.pdf',
-          file_r2_key_back: 'files/cedula-1-back.pdf',
-          file_name: 'cedula-1.pdf',
-          file_size: 2500000,
-          mime_type: 'application/pdf',
-          reviewed_by: undefined,
-          reviewed_at: undefined,
-          admin_comments: undefined,
-          created_at: '2025-10-23',
-          updated_at: '2025-10-23',
-          days_remaining: 1817,
-          worker_name: 'Juan Pérez López',
-          company_name: 'Electrocicla S.A.',
-          document_type_name: 'Cédula de Identidad',
-        },
-        {
-          id: 'doc-2',
-          worker_id: 'worker-2',
-          document_type_id: 'contrato',
-          status: 'UNDER_REVIEW',
-          emission_date: '2025-09-01',
-          expiry_date: undefined,
-          file_r2_key: 'files/contrato-1.pdf',
-          file_r2_key_back: undefined,
-          file_name: 'contrato-1.pdf',
-          file_size: 1800000,
-          mime_type: 'application/pdf',
-          reviewed_by: undefined,
-          reviewed_at: undefined,
-          admin_comments: undefined,
-          created_at: '2025-10-20',
-          updated_at: '2025-10-23',
-          days_remaining: undefined,
-          worker_name: 'María González López',
-          company_name: 'Electrocicla S.A.',
-          document_type_name: 'Contrato de Trabajo',
-        },
-        {
-          id: 'doc-3',
-          worker_id: 'worker-1',
-          document_type_id: 'riohs',
-          status: 'EXPIRED',
-          emission_date: '2023-01-15',
-          expiry_date: '2025-01-15',
-          file_r2_key: 'files/riohs-1.pdf',
-          file_r2_key_back: undefined,
-          file_name: 'riohs-1.pdf',
-          file_size: 1200000,
-          mime_type: 'application/pdf',
-          reviewed_by: 'admin-1',
-          reviewed_at: '2025-10-20',
-          admin_comments: 'Documento expirado. Requiere renovación.',
-          created_at: '2025-01-20',
-          updated_at: '2025-10-20',
-          days_remaining: -282,
-          worker_name: 'Juan Pérez López',
-          company_name: 'Electrocicla S.A.',
-          document_type_name: 'Registro Entrega RIOHS',
-        },
-      ];
-
-      setDocuments(mockData);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Error al cargar documentos'
-      );
-    } finally {
+  // Actualizar documentos locales cuando los datos de la API cambian
+  useEffect(() => {
+    if (!apiLoading && apiDocuments.length > 0) {
+      const mappedDocs = apiDocuments.map(doc => ({
+        ...doc,
+        worker_name: 'Trabajador',  // TODO: Agregar nombre del trabajador desde API
+        company_name: 'Empresa',     // TODO: Agregar nombre de la empresa desde API
+        document_type_name: 'Documento', // TODO: Agregar tipo de documento desde API
+      }));
+      setDocuments(mappedDocs);
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
+  }, [apiDocuments, apiLoading]);
 
   // Filtrar documentos
   const filteredDocuments = documents.filter(doc => {
@@ -173,25 +98,11 @@ export default function AdminDocumentReviewPage() {
   // Guardar cambios
   const handleSaveClick = async (docId: string) => {
     try {
-      // TODO: Llamar API PUT /api/documents/:id
+      // Llamar API para actualizar documento
+      await updateDocumentStatus(docId, editingData.status, editingData.admin_comments);
       setSuccess('Documento actualizado exitosamente');
       setEditingId(undefined);
       setTimeout(() => setSuccess(undefined), 3000);
-      
-      // Actualizar estado local
-      setDocuments(docs =>
-        docs.map(d =>
-          d.id === docId
-            ? {
-                ...d,
-                status: editingData.status as any,
-                admin_comments: editingData.admin_comments,
-                reviewed_by: 'admin-current',
-                reviewed_at: new Date().toISOString(),
-              }
-            : d
-        )
-      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Error al actualizar documento'
@@ -203,6 +114,30 @@ export default function AdminDocumentReviewPage() {
   const handleCancelClick = () => {
     setEditingId(undefined);
     setEditingData({ status: '', admin_comments: '' });
+  };
+
+  // Descargar documento
+  const handleDownloadClick = async (doc: FilteredDocument) => {
+    try {
+      if (!doc.file_r2_key) {
+        setError('El documento no tiene archivo asociado');
+        return;
+      }
+      setError(undefined);
+      const downloadUrl = await generateSignedDownloadUrl(doc.file_r2_key);
+      
+      // Crear link y disparar descarga
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = doc.file_name || 'documento';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Error al descargar documento'
+      );
+    }
   };
 
   // Obtener color según estado
@@ -619,7 +554,7 @@ export default function AdminDocumentReviewPage() {
                         ) : (
                           <>
                             <button
-                              onClick={() => window.open('#')} // TODO: Agregar descarga
+                              onClick={() => handleDownloadClick(doc)}
                               className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700"
                             >
                               <Download className="w-4 h-4" />

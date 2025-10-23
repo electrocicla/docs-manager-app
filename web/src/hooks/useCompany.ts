@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Company, Worker, WorkerProfile } from '../types/company';
+import type { WorkerDocument } from '../types/company';
 import { config } from '../config';
 
 export function useCompanies() {
@@ -231,5 +232,66 @@ export function useWorkerProfile(workerId: string) {
     loading,
     error,
     fetchProfile,
+  };
+}
+
+export function useAdminDocuments() {
+  const [documents, setDocuments] = useState<WorkerDocument[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPendingDocuments = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${config.apiUrl}/documents/pending`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      
+      if (!response.ok) throw new Error('Error al cargar documentos pendientes');
+      
+      const data = await response.json();
+      setDocuments(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateDocumentStatus = useCallback(async (docId: string, status: string, comments?: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${config.apiUrl}/documents/${docId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ status, admin_comments: comments }),
+      });
+      
+      if (!response.ok) throw new Error('Error al actualizar documento');
+      
+      const updated = await response.json();
+      setDocuments(prev => prev.map(d => d.id === docId ? updated : d));
+      return updated;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    documents,
+    loading,
+    error,
+    fetchPendingDocuments,
+    updateDocumentStatus,
   };
 }
