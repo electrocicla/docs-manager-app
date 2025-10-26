@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Variables } from '../types';
 import { requireAuth } from '../lib/jwt';
 import { generateId } from '../lib/db';
+import { uploadToR2, generateR2Key, sanitizeFilename } from '../lib/r2';
 
 const workers = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -351,6 +352,128 @@ workers.delete('/:id', async (c) => {
   } catch (error) {
     console.error('Error deleting worker:', error);
     return c.json({ error: 'Failed to delete worker', message: (error as Error).message }, 500);
+  }
+});
+
+/**
+ * POST /api/workers/:id/photo - Subir foto de perfil
+ */
+workers.post('/:id/photo', async (c) => {
+  try {
+    const authContext = c.get('authContext');
+    const userId = authContext.userId;
+    const workerId = c.req.param('id');
+    const db = c.env.DB;
+    const bucket = c.env.FILESTORE;
+
+    // Verificar que el trabajador existe y pertenece a una empresa del usuario
+    const worker = await db
+      .prepare(`
+        SELECT w.id, w.company_id, c.user_id
+        FROM workers w
+        JOIN companies c ON w.company_id = c.id
+        WHERE w.id = ? AND c.user_id = ?
+      `)
+      .bind(workerId, userId)
+      .first();
+
+    if (!worker) {
+      return c.json({ error: 'Worker not found or not authorized' }, 404);
+    }
+
+    // Parse multipart form data
+    const formData = await c.req.formData();
+    const fileEntry = formData.get('photo');
+
+    if (!fileEntry || typeof fileEntry === 'string') {
+      return c.json({ error: 'No photo provided or invalid format' }, 400);
+    }
+
+    const file = fileEntry as File;
+
+    // Validar tipo de archivo (solo imágenes)
+    if (!file.type.startsWith('image/')) {
+      return c.json({ error: 'Only image files are allowed' }, 400);
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return c.json({ error: 'Image size cannot exceed 5MB' }, 400);
+    }
+
+    // Generar key para R2
+    const fileName = `profile-${workerId}-${Date.now()}.${file.name.split('.').pop()}`;
+    const r2Key = generateR2Key('profiles', fileName);
+
+    // Convertir archivo a ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+
+    // Subir a R2
+    await uploadToR2(bucket, r2Key, arrayBuffer, {
+      contentType: file.type,
+    });
+
+    // Actualizar el trabajador con la nueva key
+    await db
+      .prepare('UPDATE workers SET profile_image_r2_key = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+      .bind(r2Key, workerId)
+      .run();
+
+    return c.json({
+      success: true,
+      data: { photoKey: r2Key }
+    });
+  } catch (error) {
+    console.error('Error uploading profile photo:', error);
+    return c.json({ error: 'Failed to upload profile photo', message: (error as Error).message }, 500);
+  }
+});
+
+/**
+ * DELETE /api/workers/:id/photo - Eliminar foto de perfil
+ */
+workers.delete('/:id/photo', async (c) => {
+  try {
+    const authContext = c.get('authContext');
+    const userId = authContext.userId;
+    const workerId = c.req.param('id');
+    const db = c.env.DB;
+
+    // Verificar que el trabajador existe y pertenece a una empresa del usuario
+    const worker = await db
+      .prepare(`
+        SELECT w.id, w.profile_image_r2_key, c.user_id
+        FROM workers w
+        JOIN companies c ON w.company_id = c.id
+        WHERE w.id = ? AND c.user_id = ?
+      `)
+      .bind(workerId, userId)
+      .first();
+
+    if (!worker) {
+      return c.json({ error: 'Worker not found or not authorized' }, 404);
+    }
+
+    if (!worker.profile_image_r2_key) {
+      return c.json({ error: 'Worker has no profile photo' }, 400);
+    }
+
+    // Actualizar el trabajador para quitar la foto
+    await db
+      .prepare('UPDATE workers SET profile_image_r2_key = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+      .bind(workerId)
+      .run();
+
+    // TODO: Opcionalmente eliminar el archivo de R2
+    // await bucket.delete(worker.profile_image_r2_key);
+
+    return c.json({
+      success: true,
+      message: 'Profile photo removed successfully'
+    });
+  } catch (error) {
+    console.error('Error removing profile photo:', error);
+    return c.json({ error: 'Failed to remove profile photo', message: (error as Error).message }, 500);
   }
 });
 

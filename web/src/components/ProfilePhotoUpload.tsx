@@ -39,55 +39,26 @@ export function ProfilePhotoUpload({
     setError(null);
 
     try {
-      // Primero obtener URL de subida
-      const uploadUrlResponse = await fetch(`${config.apiUrl}/r2/upload-url`, {
+      // Crear FormData para enviar el archivo
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      // Subir foto directamente al servidor
+      const uploadResponse = await fetch(`${config.apiUrl}/workers/${workerId}/photo`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
         },
-        body: JSON.stringify({
-          fileName: `profile-${workerId}-${Date.now()}.${file.name.split('.').pop()}`,
-          contentType: file.type,
-        }),
-      });
-
-      if (!uploadUrlResponse.ok) {
-        throw new Error('Error al obtener URL de subida');
-      }
-
-      const { uploadUrl, fileKey } = await uploadUrlResponse.json();
-
-      // Subir archivo a R2
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
+        body: formData,
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Error al subir la imagen');
+        const errorData = await uploadResponse.json();
+        throw new Error(errorData.error || 'Error al subir la imagen');
       }
 
-      // Actualizar el trabajador con la nueva foto
-      const updateResponse = await fetch(`${config.apiUrl}/workers/${workerId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-        },
-        body: JSON.stringify({
-          profile_image_r2_key: fileKey,
-        }),
-      });
-
-      if (!updateResponse.ok) {
-        throw new Error('Error al actualizar el perfil');
-      }
-
-      onPhotoUpdated(fileKey);
+      const result = await uploadResponse.json();
+      onPhotoUpdated(result.data.photoKey);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -102,20 +73,16 @@ export function ProfilePhotoUpload({
     setError(null);
 
     try {
-      // Actualizar el trabajador removiendo la foto
-      const updateResponse = await fetch(`${config.apiUrl}/workers/${workerId}`, {
-        method: 'PUT',
+      const response = await fetch(`${config.apiUrl}/workers/${workerId}/photo`, {
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
         },
-        body: JSON.stringify({
-          profile_image_r2_key: null,
-        }),
       });
 
-      if (!updateResponse.ok) {
-        throw new Error('Error al remover la foto');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al eliminar la imagen');
       }
 
       onPhotoUpdated(null);
