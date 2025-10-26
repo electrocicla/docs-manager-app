@@ -18,6 +18,7 @@ import {
   Calendar,
   FileText,
 } from 'lucide-react';
+import { generateSignedUploadUrl, uploadFileToR2 } from '../utils/r2-storage';
 import { formatRut } from '../utils/rut';
 
 export default function WorkerProfilePage() {
@@ -104,17 +105,40 @@ export default function WorkerProfilePage() {
       setUploadError(undefined);
       setUploading(true);
 
-      // TODO: Upload files to R2 and get fileKeys
-      // For now, simulating the upload
-      const file_r2_key = `documents/${workerId}/${data.file.name}`;
-      const file_r2_key_back = data.file_back ? `documents/${workerId}/${data.file_back.name}` : undefined;
+      // Generate unique file keys
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2, 15);
+      const keyFrente = `documents/${timestamp}-${random}/FRONT.${data.file.name.split('.').pop()}`;
+      const keyDorso = data.file_back ? `documents/${timestamp}-${random}/BACK.${data.file_back.name.split('.').pop()}` : undefined;
 
-      await clienteHttp.post(`/documents/worker/${workerId}`, {
+      console.log('Document files keys generated:', { keyFrente, keyDorso });
+
+      // Upload front file to R2
+      const { uploadUrl: uploadUrlFrente, fileKey: fileKeyFrente } = await generateSignedUploadUrl(
+        keyFrente,
+        data.file.type
+      );
+      await uploadFileToR2(data.file, uploadUrlFrente);
+
+      // Upload back file to R2 if exists
+      let fileKeyDorso: string | undefined;
+      if (data.file_back && keyDorso) {
+        const { uploadUrl: uploadUrlDorso, fileKey: fileKeyDorsoResult } = await generateSignedUploadUrl(
+          keyDorso,
+          data.file_back.type
+        );
+        await uploadFileToR2(data.file_back, uploadUrlDorso);
+        fileKeyDorso = fileKeyDorsoResult;
+      }
+
+      // Create document record in database
+      await clienteHttp.post(`/documents`, {
+        worker_id: workerId,
         document_type_id: data.document_type_id,
         emission_date: data.emission_date,
         expiry_date: data.expiry_date,
-        file_r2_key,
-        file_r2_key_back,
+        file_r2_key: fileKeyFrente,
+        file_r2_key_back: fileKeyDorso,
         file_name: data.file.name,
         file_size: data.file.size,
         mime_type: data.file.type,
