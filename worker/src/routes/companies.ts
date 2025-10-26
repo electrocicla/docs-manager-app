@@ -21,7 +21,7 @@ companies.get('/', async (c) => {
       .prepare(
         `SELECT id, user_id, name, rut, industry, address, city, region, phone, email, website, employees_count, description, logo_r2_key, status, created_at, updated_at
          FROM companies
-         WHERE user_id = ?
+         WHERE user_id = ? AND status = 'ACTIVE'
          ORDER BY created_at DESC`
       )
       .bind(userId)
@@ -91,10 +91,10 @@ companies.post('/', async (c) => {
       );
     }
 
-    // Verificar que el RUT no esté duplicado para este usuario
+    // Verificar que el RUT no esté duplicado para este usuario (solo considera empresas ACTIVAS)
     const existingCompany = await db
-      .prepare('SELECT id FROM companies WHERE user_id = ? AND rut = ?')
-      .bind(userId, rut)
+      .prepare('SELECT id FROM companies WHERE user_id = ? AND rut = ? AND status = ?')
+      .bind(userId, rut, 'ACTIVE')
       .first();
 
     if (existingCompany) {
