@@ -107,6 +107,10 @@ export function ProfilePhotoUpload({
               src={getPhotoUrl(currentPhotoKey)}
               alt="Foto de perfil"
               className="w-full h-full object-cover"
+              onError={() => {
+                console.log('Image failed to load:', getPhotoUrl(currentPhotoKey));
+                console.log('Current photo key:', currentPhotoKey);
+              }}
             />
           ) : (
             <User className="w-12 h-12 text-gray-400" />
