@@ -1,10 +1,9 @@
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { FileText, Download } from 'lucide-react';
 import { Archivo } from '../types';
 import { servicioArchivos } from '../api/servicio-archivos';
 import { Tarjeta } from './ui/Tarjeta';
 import { Boton } from './ui/Boton';
+import { formatDateTime } from '../utils/date';
 
 /**
  * Componente Historial Archivos
@@ -17,10 +16,6 @@ export function HistorialArchivos({
   archivos: Archivo[];
   alDescargar?: (_archivo: Archivo) => void;
 }) {
-  const formatearFecha = (fecha: string) => {
-    return format(new Date(fecha), 'dd/MM/yyyy HH:mm', { locale: es });
-  };
-
   if (archivos.length === 0) {
     return (
       <Tarjeta>
@@ -41,7 +36,7 @@ export function HistorialArchivos({
               <div>
                 <p className="font-medium">{archivo.filename}</p>
                 <p className="text-sm text-gray-500">
-                  Versión {archivo.version} • {servicioArchivos.formatearTamano(archivo.size)} • {formatearFecha(archivo.created_at)}
+                  Versión {archivo.version} • {servicioArchivos.formatearTamano(archivo.size)} • {formatDateTime(archivo.created_at)}
                 </p>
               </div>
             </div>

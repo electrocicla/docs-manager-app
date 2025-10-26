@@ -1,11 +1,10 @@
 import React from 'react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { Calendar, User, FileText, DollarSign } from 'lucide-react';
 import { Trabajo } from '../types';
 import { servicioTrabajos } from '../api/servicio-trabajos';
 import { Etiqueta } from './ui/Etiqueta';
 import { Tarjeta } from './ui/Tarjeta';
+import { formatDate } from '../utils/date';
 
 interface PropiedadesTarjetaTrabajo {
   trabajo: Trabajo;
@@ -25,10 +24,6 @@ export function TarjetaTrabajo({
   const etiquetaEstado = servicioTrabajos.obtenerEtiquetaEstado(trabajo.status);
   const colorEstado = servicioTrabajos.obtenerColorEstado(trabajo.status);
 
-  const formatearFecha = (fecha: string) => {
-    return format(new Date(fecha), 'dd/MM/yyyy', { locale: es });
-  };
-
   return (
     <div
       className={`cursor-pointer transition-shadow hover:shadow-md ${alHacerClic ? 'cursor-pointer' : ''}`}
@@ -46,45 +41,45 @@ export function TarjetaTrabajo({
               </p>
             )}
           </div>
-          <Etiqueta texto={etiquetaEstado} color={colorEstado as any} />
+          <Etiqueta texto={etiquetaEstado} color={colorEstado} />
         </div>
 
-      <div className="space-y-2 text-sm text-gray-600">
-        <div className="flex items-center space-x-2">
-          <Calendar className="w-4 h-4" />
-          <span>Creado: {formatearFecha(trabajo.created_at)}</span>
+        <div className="space-y-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-4 h-4" />
+            <span>Creado: {formatDate(trabajo.created_at)}</span>
+          </div>
+
+          {trabajo.professional_id && (
+            <div className="flex items-center space-x-2">
+              <User className="w-4 h-4" />
+              <span>Asignado a profesional</span>
+            </div>
+          )}
+
+          {trabajo.quote_amount && (
+            <div className="flex items-center space-x-2">
+              <DollarSign className="w-4 h-4" />
+              <span>
+                {servicioTrabajos.formatearMonto(trabajo.quote_amount)} {trabajo.quote_currency}
+              </span>
+            </div>
+          )}
+
+          {trabajo.accepted_at && (
+            <div className="flex items-center space-x-2">
+              <FileText className="w-4 h-4" />
+              <span>Aceptado: {formatDate(trabajo.accepted_at)}</span>
+            </div>
+          )}
+
+          {trabajo.finished_at && (
+            <div className="flex items-center space-x-2">
+              <FileText className="w-4 h-4" />
+              <span>Finalizado: {formatDate(trabajo.finished_at)}</span>
+            </div>
+          )}
         </div>
-
-        {trabajo.professional_id && (
-          <div className="flex items-center space-x-2">
-            <User className="w-4 h-4" />
-            <span>Asignado a profesional</span>
-          </div>
-        )}
-
-        {trabajo.quote_amount && (
-          <div className="flex items-center space-x-2">
-            <DollarSign className="w-4 h-4" />
-            <span>
-              {servicioTrabajos.formatearMonto(trabajo.quote_amount)} {trabajo.quote_currency}
-            </span>
-          </div>
-        )}
-
-        {trabajo.accepted_at && (
-          <div className="flex items-center space-x-2">
-            <FileText className="w-4 h-4" />
-            <span>Aceptado: {formatearFecha(trabajo.accepted_at)}</span>
-          </div>
-        )}
-
-        {trabajo.finished_at && (
-          <div className="flex items-center space-x-2">
-            <FileText className="w-4 h-4" />
-            <span>Finalizado: {formatearFecha(trabajo.finished_at)}</span>
-          </div>
-        )}
-      </div>
 
         {acciones && (
           <div className="mt-4 flex justify-end space-x-2">

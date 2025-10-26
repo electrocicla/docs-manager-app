@@ -1,6 +1,8 @@
+import { EtiquetaColor } from '../../types/ui';
+
 interface PropiedadesEtiqueta {
   texto: string;
-  color?: 'gray' | 'blue' | 'yellow' | 'indigo' | 'green';
+  color?: EtiquetaColor;
 }
 
 /**
@@ -9,7 +11,7 @@ interface PropiedadesEtiqueta {
  */
 export function Etiqueta({ texto, color = 'gray' }: PropiedadesEtiqueta) {
   const claseColor = `badge-${color}`;
-  
+
   return (
     <span className={claseColor}>
       {texto}
