@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Loader, User, Mail, Phone, Briefcase, MapPin } from 'lucide-react';
 import type { Worker } from '../types/company';
+import { formatRutInput, isValidRut } from '../utils/rut';
 
 interface WorkerFormProps {
   companyId: string;
@@ -10,6 +11,28 @@ interface WorkerFormProps {
   loading?: boolean;
 }
 
+interface WorkerFormState {
+  first_name: string;
+  last_name: string;
+  rut: string;
+  email: string;
+  phone: string;
+  job_title: string;
+  department: string;
+  additional_comments: string;
+}
+
+const INITIAL_STATE: WorkerFormState = {
+  first_name: '',
+  last_name: '',
+  rut: '',
+  email: '',
+  phone: '',
+  job_title: '',
+  department: '',
+  additional_comments: '',
+};
+
 export default function WorkerForm({
   companyId,
   worker,
@@ -17,16 +40,7 @@ export default function WorkerForm({
   onCancel,
   loading = false,
 }: WorkerFormProps) {
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    rut: '',
-    email: '',
-    phone: '',
-    job_title: '',
-    department: '',
-    additional_comments: '',
-  });
+  const [formData, setFormData] = useState<WorkerFormState>(INITIAL_STATE);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +51,7 @@ export default function WorkerForm({
       setFormData({
         first_name: worker.first_name || '',
         last_name: worker.last_name || '',
-        rut: worker.rut || '',
+        rut: formatRutInput(worker.rut || ''),
         email: worker.email || '',
         phone: worker.phone || '',
         job_title: worker.job_title || '',
@@ -61,7 +75,7 @@ export default function WorkerForm({
 
     if (!formData.rut.trim()) {
       newErrors.rut = 'El RUT es requerido';
-    } else if (!/^\d{1,2}\.\d{3}\.\d{3}[-k]$/i.test(formData.rut)) {
+    } else if (!isValidRut(formData.rut)) {
       newErrors.rut = 'Formato de RUT inválido (ej: 12.345.678-K)';
     }
 
@@ -77,9 +91,10 @@ export default function WorkerForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+    const nextValue = name === 'rut' ? formatRutInput(value) : value;
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
     // Limpiar error de este campo al escribir
     if (errors[name]) {
@@ -99,17 +114,17 @@ export default function WorkerForm({
 
     setSubmitting(true);
     try {
-      const dataToSubmit = {
+      const dataToSubmit: Partial<Worker> = {
         company_id: companyId,
-        ...formData,
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        rut: formData.rut.trim(),
+        email: formData.email.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
+        job_title: formData.job_title.trim() || undefined,
+        department: formData.department.trim() || undefined,
+        additional_comments: formData.additional_comments.trim() || undefined,
       };
-
-      // Remover campos vacíos
-      Object.keys(dataToSubmit).forEach(key => {
-        if ((dataToSubmit as any)[key] === '') {
-          (dataToSubmit as any)[key] = undefined;
-        }
-      });
 
       await onSubmit(dataToSubmit);
     } finally {
