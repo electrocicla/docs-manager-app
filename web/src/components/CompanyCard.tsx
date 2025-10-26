@@ -95,27 +95,26 @@ export function CompanyCard({
             <ChevronRight className="w-4 h-4" />
           </button>
 
-          {isAdmin && (
-            <>
-              {onEdit && (
-                <button
-                  onClick={() => onEdit(company)}
-                  className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Editar"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-              )}
-              {onDelete && (
-                <button
-                  onClick={() => onDelete(company)}
-                  className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Eliminar"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </>
+          {isAdmin && onEdit && (
+            <button
+              onClick={() => onEdit(company)}
+              className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-medium transition-colors flex items-center space-x-1"
+              title="Editar"
+            >
+              <Edit2 className="w-4 h-4" />
+              <span className="text-sm">Editar</span>
+            </button>
+          )}
+
+          {isAdmin && onDelete && (
+            <button
+              onClick={() => onDelete(company)}
+              className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg font-medium transition-colors flex items-center space-x-1"
+              title="Eliminar"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="text-sm">Eliminar</span>
+            </button>
           )}
         </div>
       </div>

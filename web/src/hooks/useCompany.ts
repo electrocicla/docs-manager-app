@@ -180,6 +180,33 @@ export function useWorkers(companyId: string) {
     }
   }, []);
 
+  const updateWorker = useCallback(async (workerId: string, updates: Partial<WorkerInput>) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = await clienteHttp.put<{ data: WorkerModel }>(
+        `/workers/${workerId}`,
+        updates,
+        { requiresAuth: true }
+      );
+
+      const updated = payload?.data;
+
+      if (!updated) {
+        throw new Error('Respuesta inválida del servidor al actualizar trabajador');
+      }
+
+      setWorkers(prev => prev.map(w => w.id === workerId ? updated : w));
+      return updated;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchWorkers().catch(() => undefined);
   }, [fetchWorkers]);
@@ -190,6 +217,7 @@ export function useWorkers(companyId: string) {
     error,
     fetchWorkers,
     createWorker,
+    updateWorker,
     deleteWorker,
   };
 }

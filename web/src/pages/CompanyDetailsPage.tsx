@@ -14,7 +14,7 @@ export default function CompanyDetailsPage() {
   const { usuario, cerrarSesion } = useAuth();
   const navigate = useNavigate();
   const { companies } = useCompanies();
-  const { workers, loading: workersLoading, createWorker, deleteWorker } = useWorkers(companyId || '');
+  const { workers, loading: workersLoading, createWorker, updateWorker, deleteWorker } = useWorkers(companyId || '');
 
   const [company, setCompany] = useState<Company | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -52,7 +52,7 @@ export default function CompanyDetailsPage() {
     try {
       setError(undefined);
       if (editingWorker) {
-        // TODO: Implementar updateWorker en hook
+        await updateWorker(editingWorker.id, data);
         setSuccess('Trabajador actualizado exitosamente');
       } else {
         await createWorker(data);
