@@ -235,10 +235,52 @@ export function useWorkerProfile(workerId: string) {
     setLoading(true);
     setError(null);
     try {
-      const data = await clienteHttp.get<WorkerProfile>(`/workers/${workerId}`, {
+      // Fetch worker data
+      const workerResponse = await clienteHttp.get<{ data: WorkerModel }>(`/workers/${workerId}`, {
         requiresAuth: true,
       });
-      setProfile(data);
+      const worker = workerResponse?.data;
+
+      if (!worker) {
+        throw new Error('Worker not found');
+      }
+
+      // Fetch worker documents
+      const documentsResponse = await clienteHttp.get<{ data: WorkerDocument[] }>(`/documents/worker/${workerId}`, {
+        requiresAuth: true,
+      });
+      const documents = Array.isArray(documentsResponse?.data) ? documentsResponse.data : [];
+
+      // Fetch document types
+      const documentTypesResponse = await clienteHttp.get<{ data: WorkerDocumentType[] }>(`/documents/types`, {
+        requiresAuth: true,
+      });
+      const documentTypes = Array.isArray(documentTypesResponse?.data) ? documentTypesResponse.data : [];
+
+      // Calculate profile completeness
+      const now = new Date();
+      const documentsApproved = documents.filter(doc => doc.status === 'APPROVED').length;
+      const documentsPending = documents.filter(doc => doc.status === 'PENDING').length;
+      const documentsExpired = documents.filter(doc => doc.expiry_date && new Date(doc.expiry_date) < now).length;
+      const hasPhoto = !!worker.profile_image_r2_key;
+      const totalRequiredDocs = documentTypes.length;
+      const completedDocs = documentsApproved;
+      const percentageComplete = totalRequiredDocs > 0 ? Math.round((completedDocs / totalRequiredDocs) * 100) : 0;
+
+      const profileData: WorkerProfile = {
+        worker,
+        documents,
+        documentTypes,
+        profileCompleteness: {
+          hasPhoto,
+          documentsApproved,
+          documentsPending,
+          documentsExpired,
+          percentageComplete,
+        },
+      };
+
+      setProfile(profileData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useWorkerProfile, useDocumentTypes, useWorkerDocuments } from '../hooks/useCompany';
+import { useWorkerProfile } from '../hooks/useCompany';
+import { clienteHttp } from '../api/cliente-http';
 import { DocumentGrid } from '../components/DocumentGrid';
 import DocumentUploadForm from '../components/DocumentUploadForm';
 import { Boton } from '../components/ui/Boton';
@@ -24,22 +25,18 @@ export default function WorkerProfilePage() {
   const { usuario, cerrarSesion } = useAuth();
   const navigate = useNavigate();
   const { profile, loading, fetchProfile } = useWorkerProfile(workerId || '');
-  const { documentTypes, fetchDocumentTypes } = useDocumentTypes();
-  const { documents, uploadDocument, fetchDocuments: fetchWorkerDocuments } = useWorkerDocuments(workerId || '');
 
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [uploadError, setUploadError] = useState<string | undefined>();
   const [uploadSuccess, setUploadSuccess] = useState<string | undefined>();
   const [uploading, setUploading] = useState(false);
 
-  // Cargar perfil, tipos de documentos, y documentos del trabajador
+  // Cargar perfil del trabajador
   useEffect(() => {
     if (workerId) {
       fetchProfile();
-      fetchDocumentTypes();
-      fetchWorkerDocuments();
     }
-  }, [workerId, fetchProfile, fetchDocumentTypes, fetchWorkerDocuments]);
+  }, [workerId, fetchProfile]);
 
   if (!profile && loading) {
     return (
@@ -54,7 +51,7 @@ export default function WorkerProfilePage() {
     );
   }
 
-  if (!profile) {
+  if (!profile || !profile.worker) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
         {/* Header */}
@@ -112,7 +109,7 @@ export default function WorkerProfilePage() {
       const file_r2_key = `documents/${workerId}/${data.file.name}`;
       const file_r2_key_back = data.file_back ? `documents/${workerId}/${data.file_back.name}` : undefined;
 
-      await uploadDocument({
+      await clienteHttp.post(`/documents/worker/${workerId}`, {
         document_type_id: data.document_type_id,
         emission_date: data.emission_date,
         expiry_date: data.expiry_date,
@@ -121,14 +118,14 @@ export default function WorkerProfilePage() {
         file_name: data.file.name,
         file_size: data.file.size,
         mime_type: data.file.type,
-      });
+      }, { requiresAuth: true });
 
       setUploadSuccess('Documento subido exitosamente. Pendiente de revisión');
       setShowUploadForm(false);
       setTimeout(() => setUploadSuccess(undefined), 3000);
 
-      // Recargar documentos
-      await fetchWorkerDocuments();
+      // Recargar perfil
+      await fetchProfile();
     } catch (err) {
       setUploadError(
         err instanceof Error ? err.message : 'Error al subir el documento'
@@ -277,8 +274,8 @@ export default function WorkerProfilePage() {
           {/* Documentos */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <DocumentGrid
-              documents={documents}
-              documentTypes={documentTypes}
+              documents={profile.documents}
+              documentTypes={profile.documentTypes}
               loading={uploading}
               onUploadClick={() => setShowUploadForm(true)}
               isAdmin={usuario?.role === 'admin'}
@@ -289,7 +286,7 @@ export default function WorkerProfilePage() {
         {/* Upload Form Modal */}
         {showUploadForm && (
           <DocumentUploadForm
-            documentTypes={documentTypes}
+            documentTypes={profile.documentTypes}
             onSubmit={handleUploadSubmit}
             onCancel={() => setShowUploadForm(false)}
             loading={uploading}
