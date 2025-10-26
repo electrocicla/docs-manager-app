@@ -2,16 +2,16 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Edit2, Trash2, User } from 'lucide-react';
 import { WorkerCard } from './WorkerCard';
-import type { Worker } from '../types/company';
+import type { WorkerModel } from '../types/company';
 import { stripRutFormatting } from '../utils/rut';
 
 interface WorkerListProps {
-  workers: Worker[];
+  workers: WorkerModel[];
   loading: boolean;
   companyId?: string;
   onCreateClick: () => void;
-  onEditClick: (worker: Worker) => void;
-  onDeleteClick: (worker: Worker) => void;
+  onEditClick: (worker: WorkerModel) => void;
+  onDeleteClick: (worker: WorkerModel) => void;
 }
 
 export default function WorkerList({

@@ -3,12 +3,12 @@ import type {
   Company,
   CompanyInput,
   UpdateCompanyPayload,
-  Worker,
+  WorkerModel,
   WorkerInput,
   WorkerDocument,
   WorkerProfile,
 } from '../types/company';
-import { config } from '../config';
+import { clienteHttp } from '../api/cliente-http';
 
 export function useCompanies() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -19,22 +19,11 @@ export function useCompanies() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/companies`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+      const payload = await clienteHttp.get<{ data: Company[] }>('/companies', {
+        requiresAuth: true,
       });
 
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message =
-          (payload && typeof payload.error === 'string' && payload.error) ||
-          'Error al cargar empresas';
-        throw new Error(message);
-      }
-
-      const results = Array.isArray(payload?.data) ? (payload.data as Company[]) : [];
+      const results = Array.isArray(payload?.data) ? payload.data : [];
       setCompanies(results);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Error desconocido');
@@ -49,25 +38,11 @@ export function useCompanies() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/companies`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify(company),
+      const payload = await clienteHttp.post<{ data: Company }>('/companies', company, {
+        requiresAuth: true,
       });
-      
-      const payload = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        const message =
-          (payload && typeof payload.error === 'string' && payload.error) ||
-          'Error al crear empresa';
-        throw new Error(message);
-      }
-
-      const created = payload?.data as Company | undefined;
+      const created = payload?.data;
 
       if (!created) {
         throw new Error('Respuesta inválida del servidor al crear empresa');
@@ -88,25 +63,13 @@ export function useCompanies() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/companies/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify(updates),
-      });
-      
-      const payload = await response.json().catch(() => null);
+      const payload = await clienteHttp.put<{ data: Company }>(
+        `/companies/${id}`,
+        updates,
+        { requiresAuth: true }
+      );
 
-      if (!response.ok) {
-        const message =
-          (payload && typeof payload.error === 'string' && payload.error) ||
-          'Error al actualizar empresa';
-        throw new Error(message);
-      }
-
-      const updated = payload?.data as Company | undefined;
+      const updated = payload?.data;
 
       if (!updated) {
         throw new Error('Respuesta inválida del servidor al actualizar empresa');
@@ -127,22 +90,7 @@ export function useCompanies() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/companies/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message =
-          (payload && typeof payload.error === 'string' && payload.error) ||
-          'Error al eliminar empresa';
-        throw new Error(message);
-      }
-
+      await clienteHttp.delete<void>(`/companies/${id}`, { requiresAuth: true });
       setCompanies(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Error desconocido');
@@ -165,7 +113,7 @@ export function useCompanies() {
 }
 
 export function useWorkers(companyId: string) {
-  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [workers, setWorkers] = useState<WorkerModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -174,22 +122,12 @@ export function useWorkers(companyId: string) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/workers?companyId=${companyId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const payload = await clienteHttp.get<{ data: WorkerModel[] }>(
+        `/workers?companyId=${companyId}`,
+        { requiresAuth: true }
+      );
 
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message =
-          (payload && typeof payload.error === 'string' && payload.error) ||
-          'Error al cargar trabajadores';
-        throw new Error(message);
-      }
-
-      const workerList = Array.isArray(payload?.data) ? (payload.data as Worker[]) : [];
+      const workerList = Array.isArray(payload?.data) ? payload.data : [];
       setWorkers(workerList);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Error desconocido');
@@ -204,25 +142,13 @@ export function useWorkers(companyId: string) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/workers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify(worker),
-      });
-      
-      const payload = await response.json().catch(() => null);
+      const payload = await clienteHttp.post<{ data: WorkerModel }>(
+        '/workers',
+        worker,
+        { requiresAuth: true }
+      );
 
-      if (!response.ok) {
-        const message =
-          (payload && typeof payload.error === 'string' && payload.error) ||
-          'Error al crear trabajador';
-        throw new Error(message);
-      }
-
-      const created = payload?.data as Worker | undefined;
+      const created = payload?.data;
 
       if (!created) {
         throw new Error('Respuesta inválida del servidor al crear trabajador');
@@ -243,22 +169,7 @@ export function useWorkers(companyId: string) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/workers/${workerId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message =
-          (payload && typeof payload.error === 'string' && payload.error) ||
-          'Error al eliminar trabajador';
-        throw new Error(message);
-      }
-
+      await clienteHttp.delete<void>(`/workers/${workerId}`, { requiresAuth: true });
       setWorkers(prev => prev.filter(w => w.id !== workerId));
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Error desconocido');
@@ -293,15 +204,9 @@ export function useWorkerProfile(workerId: string) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/workers/${workerId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+      const data = await clienteHttp.get<WorkerProfile>(`/workers/${workerId}`, {
+        requiresAuth: true,
       });
-      
-      if (!response.ok) throw new Error('Error al cargar perfil del trabajador');
-      
-      const data = await response.json();
       setProfile(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -327,15 +232,9 @@ export function useAdminDocuments() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/documents/pending`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+      const data = await clienteHttp.get<WorkerDocument[]>('/documents/pending', {
+        requiresAuth: true,
       });
-      
-      if (!response.ok) throw new Error('Error al cargar documentos pendientes');
-      
-      const data = await response.json();
       setDocuments(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -348,18 +247,11 @@ export function useAdminDocuments() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiUrl}/documents/${docId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ status, admin_comments: comments }),
-      });
-      
-      if (!response.ok) throw new Error('Error al actualizar documento');
-      
-      const updated = await response.json();
+      const updated = await clienteHttp.put<WorkerDocument>(
+        `/documents/${docId}`,
+        { status, admin_comments: comments },
+        { requiresAuth: true }
+      );
       setDocuments(prev => prev.map(d => d.id === docId ? updated : d));
       return updated;
     } catch (err) {

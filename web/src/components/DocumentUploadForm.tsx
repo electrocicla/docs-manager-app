@@ -1,3 +1,4 @@
+import type * as React from 'react';
 import { useState } from 'react';
 import { X, Loader, Upload, FileText, Calendar } from 'lucide-react';
 import { uploadDocumentFiles } from '../utils/r2-storage';

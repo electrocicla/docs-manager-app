@@ -38,7 +38,7 @@ export interface CompanyInput {
 
 export type UpdateCompanyPayload = Partial<CompanyInput>;
 
-export interface Worker {
+export interface WorkerModel {
   id: string;
   company_id: string;
   first_name: string;
@@ -101,7 +101,7 @@ export interface WorkerDocument {
 }
 
 export interface WorkerProfile {
-  worker: Worker;
+  worker: WorkerModel;
   documents: WorkerDocument[];
   documentTypes: WorkerDocumentType[];
   profileCompleteness: {

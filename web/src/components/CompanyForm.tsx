@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from 'react';
+﻿import type * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Building2, Phone, Mail, MapPin, Globe, Users, FileText, X, Loader } from 'lucide-react';
 import type { Company, CompanyInput } from '../types/company';
 import { formatRutInput, isValidRut, normalizeRut } from '../utils/rut';

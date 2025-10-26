@@ -1,11 +1,12 @@
+import type * as React from 'react';
 import { useState, useEffect } from 'react';
 import { X, Loader, User, Mail, Phone, Briefcase, MapPin } from 'lucide-react';
-import type { Worker, WorkerInput } from '../types/company';
+import type { WorkerModel, WorkerInput } from '../types/company';
 import { formatRutInput, isValidRut, normalizeRut } from '../utils/rut';
 
 interface WorkerFormProps {
   companyId: string;
-  worker?: Worker;
+  worker?: WorkerModel;
   onSubmit: (data: WorkerInput) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;

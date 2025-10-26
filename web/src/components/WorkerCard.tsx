@@ -1,16 +1,16 @@
 import { User, Mail, Phone } from 'lucide-react';
-import type { Worker } from '../types/company';
+import type { WorkerModel } from '../types/company';
 import { formatRut } from '../utils/rut';
 
 interface WorkerCardProps {
-  worker: Worker;
+  worker: WorkerModel;
   documentsStatus?: {
     approved: number;
     pending: number;
     expired: number;
     total: number;
   };
-  onSelect: (worker: Worker) => void;
+  onSelect: (worker: WorkerModel) => void;
 }
 
 /**

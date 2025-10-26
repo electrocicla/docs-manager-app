@@ -6,7 +6,7 @@ import WorkerList from '../components/WorkerList';
 import WorkerForm from '../components/WorkerForm';
 import { Boton } from '../components/ui/Boton';
 import { ArrowLeft, LogOut, AlertCircle, Building2, Users } from 'lucide-react';
-import type { Company, Worker, WorkerInput } from '../types/company';
+import type { Company, WorkerModel, WorkerInput } from '../types/company';
 import { formatRut } from '../utils/rut';
 
 export default function CompanyDetailsPage() {
@@ -18,8 +18,8 @@ export default function CompanyDetailsPage() {
 
   const [company, setCompany] = useState<Company | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingWorker, setEditingWorker] = useState<Worker | undefined>();
-  const [deleteConfirm, setDeleteConfirm] = useState<Worker | undefined>();
+  const [editingWorker, setEditingWorker] = useState<WorkerModel | undefined>();
+  const [deleteConfirm, setDeleteConfirm] = useState<WorkerModel | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [success, setSuccess] = useState<string | undefined>();
 
@@ -42,7 +42,7 @@ export default function CompanyDetailsPage() {
     setError(undefined);
   };
 
-  const handleEditClick = (worker: Worker) => {
+  const handleEditClick = (worker: WorkerModel) => {
     setEditingWorker(worker);
     setShowForm(true);
     setError(undefined);
@@ -66,7 +66,7 @@ export default function CompanyDetailsPage() {
     }
   };
 
-  const handleDeleteClick = (worker: Worker) => {
+  const handleDeleteClick = (worker: WorkerModel) => {
     setDeleteConfirm(worker);
   };
 
