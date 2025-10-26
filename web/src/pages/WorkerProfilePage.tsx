@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useWorkerProfile } from '../hooks/useCompany';
+import { useWorkerProfile, useWorkerDocuments } from '../hooks/useCompany';
 import { config } from '../config';
 import { DocumentGrid } from '../components/DocumentGrid';
 import DocumentUploadForm from '../components/DocumentUploadForm';
@@ -25,6 +25,7 @@ export default function WorkerProfilePage() {
   const { usuario, cerrarSesion } = useAuth();
   const navigate = useNavigate();
   const { profile, loading, fetchProfile } = useWorkerProfile(workerId || '');
+  const { deleteDocument } = useWorkerDocuments(workerId || '');
 
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [uploadError, setUploadError] = useState<string | undefined>();
@@ -142,6 +143,59 @@ export default function WorkerProfilePage() {
       );
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDownload = async (documentId: string) => {
+    try {
+      // Call the download endpoint to get the signed URL
+      const response = await fetch(`${config.apiUrl}/documents/download/${documentId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get download URL');
+      }
+
+      const data = await response.json();
+      const downloadUrl = data.data.downloadUrl;
+
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = ''; // Let the browser determine the filename
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Download error:', err);
+      setUploadError(
+        err instanceof Error ? err.message : 'Error al descargar el documento'
+      );
+      setTimeout(() => setUploadError(undefined), 3000);
+    }
+  };
+
+  const handleDelete = async (documentId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este documento?')) {
+      return;
+    }
+
+    try {
+      await deleteDocument(documentId);
+      setUploadSuccess('Documento eliminado exitosamente');
+      setTimeout(() => setUploadSuccess(undefined), 3000);
+      // Recargar perfil
+      await fetchProfile();
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : 'Error al eliminar el documento'
+      );
+      setTimeout(() => setUploadError(undefined), 3000);
     }
   };
 
@@ -289,6 +343,8 @@ export default function WorkerProfilePage() {
               loading={uploading}
               onUploadClick={() => setShowUploadForm(true)}
               isAdmin={usuario?.role === 'admin'}
+              onDownload={handleDownload}
+              onDelete={handleDelete}
             />
           </div>
         </div>

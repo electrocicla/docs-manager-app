@@ -1,4 +1,4 @@
-import { Download, MoreVertical, Clock, AlertCircle } from 'lucide-react';
+import { Download, MoreVertical, Clock, AlertCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { WorkerDocument, WorkerDocumentType, DocumentStatus } from '../types/company';
 
@@ -49,6 +49,7 @@ interface DocumentCardProps {
   isAdmin?: boolean;
   onStatusChange?: (status: DocumentStatus) => void;
   onDownload?: () => void;
+  onDelete?: () => void;
 }
 
 /**
@@ -60,6 +61,7 @@ export function DocumentCard({
   isAdmin = false,
   onStatusChange,
   onDownload,
+  onDelete,
 }: DocumentCardProps) {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const daysRemaining = getDaysRemaining(document.expiry_date);
@@ -170,15 +172,26 @@ export function DocumentCard({
       )}
 
       {/* Actions */}
-      {onDownload && (
-        <button
-          onClick={onDownload}
-          className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-lg transition-colors text-sm font-medium"
-        >
-          <Download className="w-4 h-4" />
-          <span>Descargar</span>
-        </button>
-      )}
+      <div className="space-y-2">
+        {onDownload && (
+          <button
+            onClick={onDownload}
+            className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-lg transition-colors text-sm font-medium"
+          >
+            <Download className="w-4 h-4" />
+            <span>Descargar</span>
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors text-sm font-medium"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Eliminar</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

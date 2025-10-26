@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Variables } from '../types';
 import { requireAuth } from '../lib/jwt';
 import { generateId } from '../lib/db';
+import { generateSignedDownloadUrl } from '../utils/r2-storage';
 
 const documents = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -393,22 +394,20 @@ documents.delete('/:id', async (c) => {
       return c.json({ error: 'Document not found' }, 404);
     }
 
-    // Verificar permisos (solo admin puede borrar)
+    // Verificar permisos (admin puede borrar cualquier documento, usuario normal solo los de sus trabajadores)
     if (!isAdmin) {
-      return c.json({ error: 'Only admins can delete documents' }, 403);
-    }
+      const worker = await db
+        .prepare(
+          `SELECT w.id FROM workers w 
+           JOIN companies c ON w.company_id = c.id 
+           WHERE w.id = ? AND c.user_id = ?`
+        )
+        .bind(doc.worker_id, userId)
+        .first();
 
-    const worker = await db
-      .prepare(
-        `SELECT w.id FROM workers w 
-         JOIN companies c ON w.company_id = c.id 
-         WHERE w.id = ? AND c.user_id = ?`
-      )
-      .bind(doc.worker_id, userId)
-      .first();
-
-    if (!worker) {
-      return c.json({ error: 'Document not authorized for your account' }, 403);
+      if (!worker) {
+        return c.json({ error: 'Document not authorized for your account' }, 403);
+      }
     }
 
     // Eliminar documento
@@ -461,12 +460,16 @@ documents.get('/download/:documentId', async (c) => {
       return c.json({ error: 'Document not authorized for your account' }, 403);
     }
 
-    // Aquí se devolvería la URL firmada de R2
-    // Por ahora, devolvemos los keys de R2 para ser descargados por el frontend
+    // Generar URL firmada para descarga
+    const { downloadUrl } = await generateSignedDownloadUrl(
+      c,
+      doc.file_r2_key as string
+    );
+
     return c.json({
       success: true,
       data: {
-        file_r2_key: doc.file_r2_key,
+        downloadUrl,
         file_r2_key_back: doc.file_r2_key_back,
       },
     });
@@ -567,7 +570,7 @@ documents.post('/upload', async (c) => {
         docId,
         workerId,
         documentTypeId,
-        'PENDING',
+        'UNDER_REVIEW', // Estado inicial: En espera de revisión
         emissionDate || null,
         expiryDate || null,
         fileKey,

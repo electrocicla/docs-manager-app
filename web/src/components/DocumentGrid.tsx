@@ -8,6 +8,8 @@ interface DocumentGridProps {
   loading: boolean;
   onUploadClick: () => void;
   isAdmin?: boolean;
+  onDownload?: (documentId: string) => void;
+  onDelete?: (documentId: string) => void;
 }
 
 /**
@@ -20,6 +22,8 @@ export function DocumentGrid({
   loading,
   onUploadClick,
   isAdmin = false,
+  onDownload,
+  onDelete,
 }: DocumentGridProps) {
   if (loading) {
     return (
@@ -68,6 +72,8 @@ export function DocumentGrid({
                 document={document}
                 documentType={docType}
                 isAdmin={isAdmin}
+                onDownload={onDownload ? () => onDownload(document.id) : undefined}
+                onDelete={onDelete ? () => onDelete(document.id) : undefined}
               />
             );
           }

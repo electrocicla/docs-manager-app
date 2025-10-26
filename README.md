@@ -380,14 +380,40 @@ ENVIRONMENT = "production"
 - ✅ Vista de detalles de trabajo
 - ✅ Estados: POR_REVISAR, REVISION_EN_PROGRESO, COTIZACION, TRABAJO_EN_PROGRESO, FINALIZADO
 
-#### Infraestructura
-- ✅ D1 Database con 7 tablas y migraciones
-- ✅ R2 Storage para archivos
-- ✅ Worker API con Hono framework
-- ✅ Cloudflare Pages para frontend
-- ✅ Deploy automatizado
-- ✅ Health checks
-- ✅ CORS configurado
+#### Gestión de Documentos
+- ✅ Sistema completo de gestión documental para trabajadores
+- ✅ 5 tipos de documentos requeridos por legislación chilena:
+  - Cédula de Identidad
+  - Contrato de Trabajo
+  - Información Riesgos Laborales DS 44
+  - Registro Entrega de RIOHS
+  - Registro Entrega de EPP
+- ✅ Upload multipart con validación de archivos (PDF, imágenes)
+- ✅ Almacenamiento seguro en Cloudflare R2
+- ✅ Estados automáticos de documentos:
+  - Faltante (no subido)
+  - En espera de revisión (recién subido)
+  - En revisión (admin revisando)
+  - Aprobado/Vigente
+  - Rechazado
+  - Vencido/Obsoleto
+- ✅ Descarga segura con URLs firmadas temporales
+- ✅ Eliminación de documentos por usuarios propietarios
+- ✅ Control administrativo completo de estados
+- ✅ Dashboard visual con progreso de completitud
+- ✅ Fechas de emisión y vencimiento con alertas
+- ✅ Workflow completo: Upload → Revisión → Aprobación/Rechazo
+- ✅ Permisos granulares: Usuarios eliminan propios, Admins controlan todo
+
+#### Gestión de Documentos
+- ✅ Sistema completo de gestión documental
+- ✅ 5 tipos de documentos requeridos por ley chilena
+- ✅ Upload directo a R2 con validación de tipos MIME
+- ✅ Estados automáticos: Faltante → En espera de revisión → En revisión → Aprobado/Rechazado
+- ✅ Descarga segura con URLs firmadas
+- ✅ Eliminación de documentos por usuarios
+- ✅ Control administrativo de estados
+- ✅ Dashboard visual con indicadores de completitud
 
 #### DevOps
 - ✅ Script de deploy automatizado
@@ -398,7 +424,6 @@ ENVIRONMENT = "production"
 
 ### 🔄 En Desarrollo
 
-- 🔄 Carga de documentos (PDF, DOCX, XLSX, imágenes)
 - 🔄 Sistema de cotizaciones por profesionales
 - 🔄 Aceptación de cotizaciones
 - 🔄 Workflow completo de estados
@@ -435,7 +460,68 @@ POST /api/auth/login            # Login
 GET  /api/jobs                  # Listar trabajos
 POST /api/jobs                  # Crear trabajo
 GET  /api/jobs/:id              # Detalles de trabajo
+
+# Gestión de Documentos
+GET  /api/documents/types       # Tipos de documentos requeridos
+GET  /api/documents/worker/:id  # Documentos de un trabajador
+POST /api/documents/upload      # Subir documento (multipart)
+GET  /api/documents/download/:id # Descargar documento (URL firmada)
+DELETE /api/documents/:id       # Eliminar documento
+PUT  /api/documents/:id         # Actualizar estado (solo admin)
+GET  /api/documents/pending     # Documentos pendientes (solo admin)
+
+# Gestión de Empresas y Trabajadores
+GET  /api/companies             # Listar empresas
+POST /api/companies             # Crear empresa
+GET  /api/workers               # Listar trabajadores
+POST /api/workers               # Crear trabajador
 ```
+
+## 📄 Workflow de Gestión Documental
+
+### Proceso Completo
+
+1. **Registro de Empresa y Trabajadores**
+   - Empresa crea cuenta y registra trabajadores
+   - Sistema valida RUT y datos chilenos
+
+2. **Upload de Documentos**
+   - Trabajador accede a su perfil
+   - Ve 5 documentos requeridos con estados visuales
+   - Sube documentos con drag & drop o selección de archivos
+   - Validación automática de tipos MIME y tamaño
+
+3. **Revisión Automática**
+   - Documento pasa automáticamente a "En espera de revisión"
+   - Admin recibe notificación de documentos pendientes
+   - Admin puede descargar y revisar documentos
+
+4. **Aprobación/Rechazo**
+   - Admin cambia estado: Aprobado, Rechazado, o solicita corrección
+   - Comentarios opcionales para rechazos
+   - Historial de cambios auditado
+
+5. **Gestión Continua**
+   - Alertas de vencimiento automático
+   - Re-upload de documentos expirados
+   - Descarga de documentos por usuarios autorizados
+
+### Estados de Documentos
+
+- 🔴 **Faltante**: Documento no subido
+- 🟠 **En espera de revisión**: Recién subido, pendiente de revisión
+- 🟡 **En revisión**: Admin está revisando
+- 🟢 **Aprobado/Vigente**: Documento aprobado y válido
+- 🔴 **Rechazado**: Documento rechazado (con comentarios)
+- ⚫ **Vencido/Obsoleto**: Documento expirado
+
+### Seguridad Documental
+
+- ✅ Upload directo a R2 (no pasa por servidor)
+- ✅ URLs firmadas temporales para descarga
+- ✅ Validación de permisos por empresa/trabajador
+- ✅ Audit trail de todas las acciones
+- ✅ Encriptación en tránsito y reposo
 
 ## 🔒 Seguridad
 
@@ -496,9 +582,9 @@ npx wrangler tail
 
 ## 📊 Estado del Proyecto
 
-- **Última actualización:** Octubre 2025
-- **Estado:** ✅ Producción
-- **Versión:** 0.1.0
+- **Última actualización:** Octubre 26, 2025
+- **Estado:** ✅ Producción con Gestión Documental Completa
+- **Versión:** 1.1.0
 - **Frontend:** https://sr-prevencion.pages.dev
 - **Backend:** https://sr-prevencion.electrocicla.workers.dev
 - **Uptime:** Monitoreado por Cloudflare
