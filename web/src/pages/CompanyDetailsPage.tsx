@@ -218,7 +218,7 @@ export default function CompanyDetailsPage() {
                 ¿Eliminar trabajador?
               </h3>
               <p className="text-gray-600 mb-6">
-                ¿Estás seguro de que deseas eliminar a <strong>{deleteConfirm.first_name} {deleteConfirm.last_name}</strong>? Esta acción marcará al trabajador como inactivo.
+                ¿Estás seguro de que deseas eliminar a <strong>{deleteConfirm.first_name} {deleteConfirm.last_name}</strong> y todos sus documentos asociados? Esta acción no se puede deshacer.
               </p>
               <div className="flex justify-end space-x-3">
                 <button

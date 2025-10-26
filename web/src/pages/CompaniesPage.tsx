@@ -153,6 +153,7 @@ export default function CompaniesPage() {
           onCreateClick={handleCreateClick}
           onEditClick={handleEditClick}
           onDeleteClick={handleDeleteClick}
+          isAdmin={usuario?.role === 'admin'}
         />
 
         {/* Create/Edit Form Modal */}
@@ -173,7 +174,7 @@ export default function CompaniesPage() {
                 ¿Eliminar empresa?
               </h3>
               <p className="text-gray-600 mb-6">
-                ¿Estás seguro de que deseas eliminar <strong>{deleteConfirm.name}</strong>? Esta acción marcará la empresa como inactiva.
+                ¿Estás seguro de que deseas eliminar <strong>{deleteConfirm.name}</strong> y todos sus trabajadores y documentos asociados? Esta acción no se puede deshacer.
               </p>
               <div className="flex justify-end space-x-3">
                 <button

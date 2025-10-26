@@ -25,15 +25,15 @@ export interface Company {
 export interface CompanyInput {
   name: string;
   rut: string;
-  industry?: string;
-  address?: string;
+  industry: string;
+  address: string;
   city: string;
   region: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-  employees_count?: number;
-  description?: string;
+  phone: string;
+  email: string;
+  website: string;
+  employees_count: number;
+  description: string;
 }
 
 export type UpdateCompanyPayload = Partial<CompanyInput>;

@@ -135,15 +135,15 @@ export default function CompanyForm({
       const dataToSubmit: CompanyInput = {
         name: formData.name.trim(),
         rut: normalizeRut(formData.rut),
-        industry: formData.industry.trim() || undefined,
-        address: formData.address.trim() || undefined,
+        industry: formData.industry.trim(),
+        address: formData.address.trim(),
         city: formData.city.trim(),
         region: formData.region.trim(),
-        phone: formData.phone.trim() || undefined,
-        email: formData.email.trim() || undefined,
-        website: formData.website.trim() || undefined,
-        employees_count: employeesCountValue ? Number(employeesCountValue) : undefined,
-        description: formData.description.trim() || undefined,
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        website: formData.website.trim(),
+        employees_count: employeesCountValue ? Number(employeesCountValue) : 0,
+        description: formData.description.trim(),
       };
 
       console.log('Enviando datos de empresa:', dataToSubmit);

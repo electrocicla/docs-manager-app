@@ -13,6 +13,9 @@ interface CompanyCardProps {
 /**
  * Tarjeta para mostrar información de una empresa
  * Contiene nombre, RUT, empleados y acciones
+ * 
+ * Si isAdmin=true, muestra botones adicionales de Editar y Eliminar
+ * permitiendo al administrador del sistema gestionar empresas de otros usuarios
  */
 export function CompanyCard({
   company,
@@ -86,35 +89,41 @@ export function CompanyCard({
         )}
 
         {/* Actions */}
-        <div className="flex gap-2 pt-4 border-t border-gray-200">
+        <div className="space-y-2 pt-4 border-t border-gray-200">
+          {/* Acceder button - simple link style */}
           <button
             onClick={() => onSelect(company)}
-            className="flex-1 px-4 py-2 bg-primary-50 text-primary-700 hover:bg-primary-100 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+            className="w-full px-4 py-2 text-primary-600 font-medium transition-colors flex items-center justify-center space-x-2 text-sm"
           >
             <span>Acceder</span>
             <ChevronRight className="w-4 h-4" />
           </button>
 
-          {isAdmin && onEdit && (
-            <button
-              onClick={() => onEdit(company)}
-              className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-medium transition-colors flex items-center space-x-1"
-              title="Editar"
-            >
-              <Edit2 className="w-4 h-4" />
-              <span className="text-sm">Editar</span>
-            </button>
-          )}
+          {/* Edit and Delete buttons - only for admin */}
+          {isAdmin && (
+            <div className="flex gap-2">
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(company)}
+                  className="flex-1 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1"
+                  title="Editar empresa"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  <span className="text-sm">Editar</span>
+                </button>
+              )}
 
-          {isAdmin && onDelete && (
-            <button
-              onClick={() => onDelete(company)}
-              className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg font-medium transition-colors flex items-center space-x-1"
-              title="Eliminar"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span className="text-sm">Eliminar</span>
-            </button>
+              {onDelete && (
+                <button
+                  onClick={() => onDelete(company)}
+                  className="flex-1 px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg font-medium transition-colors flex items-center justify-center space-x-1"
+                  title="Eliminar empresa"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="text-sm">Eliminar</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

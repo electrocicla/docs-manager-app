@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Search, Plus, Edit2, Trash2, Building2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Plus, Building2 } from 'lucide-react';
 import { CompanyCard } from './CompanyCard';
 import type { Company } from '../types/company';
 import { stripRutFormatting } from '../utils/rut';
@@ -10,6 +11,7 @@ interface CompanyListProps {
   onCreateClick: () => void;
   onEditClick: (company: Company) => void;
   onDeleteClick: (company: Company) => void;
+  isAdmin?: boolean;
 }
 
 export default function CompanyList({
@@ -18,7 +20,9 @@ export default function CompanyList({
   onCreateClick,
   onEditClick,
   onDeleteClick,
+  isAdmin = false,
 }: CompanyListProps) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ACTIVE');
 
@@ -148,32 +152,14 @@ export default function CompanyList({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.map(company => (
-            <div key={company.id} className="relative group">
-              <CompanyCard
-                company={company}
-                onSelect={() => {}} // No implementado aquí
-                onEdit={onEditClick}
-                onDelete={onDeleteClick}
-              />
-              
-              {/* Acciones rápidas en hover */}
-              <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-end p-4 space-x-2">
-                <button
-                  onClick={() => onEditClick(company)}
-                  className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  <span>Editar</span>
-                </button>
-                <button
-                  onClick={() => onDeleteClick(company)}
-                  className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Eliminar</span>
-                </button>
-              </div>
-            </div>
+            <CompanyCard
+              key={company.id}
+              company={company}
+              onSelect={(company) => navigate(`/company/${company.id}`)}
+              onEdit={onEditClick}
+              onDelete={onDeleteClick}
+              isAdmin={isAdmin}
+            />
           ))}
         </div>
       )}

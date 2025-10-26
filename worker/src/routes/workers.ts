@@ -109,10 +109,34 @@ workers.post('/', async (c) => {
 
     const { company_id, first_name, last_name, rut, email, phone, job_title, department, additional_comments } = body;
 
-    // Validar campos requeridos
-    if (!company_id || !first_name || !last_name || !rut) {
+    console.log('POST /workers - body recibido:', JSON.stringify(body));
+    console.log('POST /workers - userId:', userId);
+
+    // Validar y normalizar campos requeridos
+    const companyIdValue = typeof company_id === 'string' ? company_id.trim() : '';
+    const firstNameValue = typeof first_name === 'string' ? first_name.trim() : '';
+    const lastNameValue = typeof last_name === 'string' ? last_name.trim() : '';
+    const rutValue = typeof rut === 'string' ? rut.trim() : '';
+
+    console.log('Campos extraídos:', { companyIdValue, firstNameValue, lastNameValue, rutValue });
+
+    if (!companyIdValue || !firstNameValue || !lastNameValue || !rutValue) {
+      console.log('Validación fallida - campos faltantes:', {
+        company_id: !!companyIdValue,
+        first_name: !!firstNameValue,
+        last_name: !!lastNameValue,
+        rut: !!rutValue,
+      });
       return c.json(
-        { error: 'Missing required fields: company_id, first_name, last_name, rut' },
+        {
+          error: 'Missing required fields',
+          details: {
+            company_id: !companyIdValue ? 'Company ID is required' : null,
+            first_name: !firstNameValue ? 'First name is required' : null,
+            last_name: !lastNameValue ? 'Last name is required' : null,
+            rut: !rutValue ? 'RUT is required' : null,
+          },
+        },
         400
       );
     }
@@ -120,7 +144,7 @@ workers.post('/', async (c) => {
     // Verificar que la empresa pertenece al usuario
     const company = await db
       .prepare('SELECT id FROM companies WHERE id = ? AND user_id = ?')
-      .bind(company_id, userId)
+      .bind(companyIdValue, userId)
       .first();
 
     if (!company) {
@@ -130,15 +154,42 @@ workers.post('/', async (c) => {
     // Verificar que el RUT no esté duplicado en esta empresa
     const existingWorker = await db
       .prepare('SELECT id FROM workers WHERE company_id = ? AND rut = ?')
-      .bind(company_id, rut)
+      .bind(companyIdValue, rutValue)
       .first();
 
     if (existingWorker) {
-      return c.json({ error: 'Worker with this RUT already exists in this company' }, 409);
+      return c.json(
+        {
+          error: 'Duplicate worker RUT',
+          message: `Ya existe un trabajador con el RUT ${rutValue} en esta empresa. Por favor usa un RUT diferente o verifica si el trabajador ya existe.`,
+          rut: rutValue,
+        },
+        409
+      );
     }
+
+    // Normalizar campos opcionales
+    const emailValue = email && typeof email === 'string' && email.trim() ? email.trim() : null;
+    const phoneValue = phone && typeof phone === 'string' && phone.trim() ? phone.trim() : null;
+    const jobTitleValue = job_title && typeof job_title === 'string' && job_title.trim() ? job_title.trim() : null;
+    const departmentValue = department && typeof department === 'string' && department.trim() ? department.trim() : null;
+    const commentsValue = additional_comments && typeof additional_comments === 'string' && additional_comments.trim() ? additional_comments.trim() : null;
 
     const workerId = generateId('worker');
     const now = new Date().toISOString();
+
+    console.log('Valores a insertar:', {
+      workerId,
+      company_id: companyIdValue,
+      first_name: firstNameValue,
+      last_name: lastNameValue,
+      rut: rutValue,
+      email: emailValue,
+      phone: phoneValue,
+      job_title: jobTitleValue,
+      department: departmentValue,
+      additional_comments: commentsValue,
+    });
 
     await db
       .prepare(
@@ -147,15 +198,15 @@ workers.post('/', async (c) => {
       )
       .bind(
         workerId,
-        company_id,
-        first_name,
-        last_name,
-        rut,
-        email || null,
-        phone || null,
-        job_title || null,
-        department || null,
-        additional_comments || null,
+        companyIdValue,
+        firstNameValue,
+        lastNameValue,
+        rutValue,
+        emailValue,
+        phoneValue,
+        jobTitleValue,
+        departmentValue,
+        commentsValue,
         'ACTIVE',
         now,
         now
@@ -256,7 +307,7 @@ workers.put('/:id', async (c) => {
 });
 
 /**
- * DELETE /api/workers/:id - Eliminar trabajador (cambiar a INACTIVE)
+ * DELETE /api/workers/:id - Eliminar trabajador (DELETE real)
  */
 workers.delete('/:id', async (c) => {
   try {
@@ -284,11 +335,12 @@ workers.delete('/:id', async (c) => {
       return c.json({ error: 'Worker not authorized for your account' }, 403);
     }
 
-    // Cambiar estado a INACTIVE en lugar de borrar
-    const now = new Date().toISOString();
+    // DELETE real - eliminar el trabajador completamente de la base de datos
+    // Nota: Los documentos relacionados se eliminarán automáticamente
+    // debido a las constraints ON DELETE CASCADE definidas en la base de datos
     await db
-      .prepare('UPDATE workers SET status = ?, updated_at = ? WHERE id = ?')
-      .bind('INACTIVE', now, workerId)
+      .prepare('DELETE FROM workers WHERE id = ?')
+      .bind(workerId)
       .run();
 
     return c.json({

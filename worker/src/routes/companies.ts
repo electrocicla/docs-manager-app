@@ -21,7 +21,7 @@ companies.get('/', async (c) => {
       .prepare(
         `SELECT id, user_id, name, rut, industry, address, city, region, phone, email, website, employees_count, description, logo_r2_key, status, created_at, updated_at
          FROM companies
-         WHERE user_id = ? AND status = 'ACTIVE'
+         WHERE user_id = ?
          ORDER BY created_at DESC`
       )
       .bind(userId)
@@ -95,18 +95,37 @@ companies.post('/', async (c) => {
 
     console.log('Campos extraídos:', { name, rut, city, region });
 
-    if (!name || !rut || !city || !region) {
-      console.log('Validación fallida - campos faltantes:', { name: !!name, rut: !!rut, city: !!city, region: !!region });
+    // Validar que los campos requeridos no estén vacíos (trim para strings)
+    const nameValue = typeof name === 'string' ? name.trim() : '';
+    const rutValue = typeof rut === 'string' ? rut.trim() : '';
+    const cityValue = typeof city === 'string' ? city.trim() : '';
+    const regionValue = typeof region === 'string' ? region.trim() : '';
+
+    if (!nameValue || !rutValue || !cityValue || !regionValue) {
+      console.log('Validación fallida - campos faltantes:', { 
+        name: !!nameValue, 
+        rut: !!rutValue, 
+        city: !!cityValue, 
+        region: !!regionValue 
+      });
       return c.json(
-        { error: 'Missing required fields: name, rut, city, region' },
+        { 
+          error: 'Missing required fields', 
+          details: {
+            name: !nameValue ? 'Name is required' : null,
+            rut: !rutValue ? 'RUT is required' : null,
+            city: !cityValue ? 'City is required' : null,
+            region: !regionValue ? 'Region is required' : null,
+          }
+        },
         400
       );
     }
 
-    // Verificar que el RUT no esté duplicado para este usuario (solo considera empresas ACTIVAS)
+    // Verificar que el RUT no esté duplicado para este usuario
     const existingCompany = await db
-      .prepare('SELECT id FROM companies WHERE user_id = ? AND rut = ? AND status = ?')
-      .bind(userId, rut, 'ACTIVE')
+      .prepare('SELECT id FROM companies WHERE user_id = ? AND rut = ?')
+      .bind(userId, rutValue)
       .first();
 
     if (existingCompany) {
@@ -116,30 +135,69 @@ companies.post('/', async (c) => {
     const companyId = generateId('company');
     const now = new Date().toISOString();
 
-    await db
-      .prepare(
-        `INSERT INTO companies (id, user_id, name, rut, industry, address, city, region, phone, email, website, employees_count, description, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        companyId,
-        userId,
-        name,
-        rut,
-        industry || '',          // ✅ SOLUCIÓN: string vacío en lugar de null
-        address || '',           // ✅ SOLUCIÓN: string vacío en lugar de null
-        city,
-        region,
-        phone || '',             // ✅ SOLUCIÓN: string vacío en lugar de null
-        email || '',             // ✅ SOLUCIÓN: string vacío en lugar de null
-        website || '',           // ✅ SOLUCIÓN: string vacío en lugar de null
-        employees_count || 0,    // ✅ SOLUCIÓN: 0 en lugar de null
-        description || '',       // ✅ SOLUCIÓN: string vacío en lugar de null
-        'ACTIVE',
-        now,
-        now
-      )
-      .run();
+    // Convertir strings vacíos a null para la base de datos, excepto campos requeridos
+    const industryValue = industry && typeof industry === 'string' && industry.trim() ? industry.trim() : null;
+    const addressValue = address && typeof address === 'string' && address.trim() ? address.trim() : null;
+    const phoneValue = phone && typeof phone === 'string' && phone.trim() ? phone.trim() : null;
+    const emailValue = email && typeof email === 'string' && email.trim() ? email.trim() : null;
+    const websiteValue = website && typeof website === 'string' && website.trim() ? website.trim() : null;
+    const descriptionValue = description && typeof description === 'string' && description.trim() ? description.trim() : null;
+    const employeesValue = typeof employees_count === 'number' && employees_count > 0 ? employees_count : null;
+
+    console.log('Valores a insertar:', {
+      companyId,
+      userId,
+      name: nameValue,
+      rut: rutValue,
+      industry: industryValue,
+      address: addressValue,
+      city: cityValue,
+      region: regionValue,
+      phone: phoneValue,
+      email: emailValue,
+      website: websiteValue,
+      employees_count: employeesValue,
+      description: descriptionValue,
+    });
+
+    try {
+      await db
+        .prepare(
+          `INSERT INTO companies (id, user_id, name, rut, industry, address, city, region, phone, email, website, employees_count, description, status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          companyId,
+          userId,
+          nameValue,
+          rutValue,
+          industryValue,
+          addressValue,
+          cityValue,
+          regionValue,
+          phoneValue,
+          emailValue,
+          websiteValue,
+          employeesValue,
+          descriptionValue,
+          'ACTIVE',
+          now,
+          now
+        )
+        .run();
+    } catch (dbError: any) {
+      // Manejar error de RUT duplicado específicamente
+      if (dbError.message && dbError.message.includes('UNIQUE constraint failed') && dbError.message.includes('rut')) {
+        console.error('Duplicate RUT error:', dbError.message);
+        return c.json({ 
+          error: 'Duplicate company RUT', 
+          message: `Ya existe una empresa con el RUT ${rutValue} en tu cuenta. Por favor usa un RUT diferente o elimina la empresa existente.`,
+          rut: rutValue
+        }, 409);
+      }
+      // Re-lanzar otros errores
+      throw dbError;
+    }
 
     const company = await db
       .prepare('SELECT * FROM companies WHERE id = ?')
@@ -159,11 +217,22 @@ companies.post('/', async (c) => {
       error: error,
       message: (error as Error).message,
       stack: (error as Error).stack,
+      name: (error as Error).name,
+      cause: (error as any).cause,
     });
+    
+    // Proporcionar más detalles sobre el error
+    const errorMessage = (error as Error).message || 'Unknown error';
+    const errorDetails = {
+      type: (error as Error).name,
+      message: errorMessage,
+      stack: (error as Error).stack?.split('\n').slice(0, 3).join('\n'),
+    };
+    
     return c.json({ 
       error: 'Failed to create company', 
-      message: (error as Error).message,
-      details: JSON.stringify(error)
+      message: errorMessage,
+      details: errorDetails,
     }, 500);
   }
 });
@@ -238,7 +307,7 @@ companies.put('/:id', async (c) => {
 });
 
 /**
- * DELETE /api/companies/:id - Eliminar empresa (cambiar a INACTIVE)
+ * DELETE /api/companies/:id - Eliminar empresa (DELETE real)
  */
 companies.delete('/:id', async (c) => {
   try {
@@ -257,11 +326,12 @@ companies.delete('/:id', async (c) => {
       return c.json({ error: 'Company not found or not authorized' }, 404);
     }
 
-    // Cambiar estado a INACTIVE en lugar de borrar
-    const now = new Date().toISOString();
+    // DELETE real - eliminar la empresa completamente de la base de datos
+    // Nota: Los workers y documentos relacionados se eliminarán automáticamente
+    // debido a las constraints ON DELETE CASCADE definidas en la base de datos
     await db
-      .prepare('UPDATE companies SET status = ?, updated_at = ? WHERE id = ?')
-      .bind('INACTIVE', now, companyId)
+      .prepare('DELETE FROM companies WHERE id = ? AND user_id = ?')
+      .bind(companyId, userId)
       .run();
 
     return c.json({
