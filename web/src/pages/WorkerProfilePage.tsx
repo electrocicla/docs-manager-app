@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useWorkerProfile } from '../hooks/useCompany';
-import { clienteHttp } from '../api/cliente-http';
+import { config } from '../config';
 import { DocumentGrid } from '../components/DocumentGrid';
 import DocumentUploadForm from '../components/DocumentUploadForm';
 import { Boton } from '../components/ui/Boton';
@@ -18,7 +18,6 @@ import {
   Calendar,
   FileText,
 } from 'lucide-react';
-import { generateSignedUploadUrl, uploadFileToR2 } from '../utils/r2-storage';
 import { formatRut } from '../utils/rut';
 
 export default function WorkerProfilePage() {
@@ -105,44 +104,31 @@ export default function WorkerProfilePage() {
       setUploadError(undefined);
       setUploading(true);
 
-      // Generate unique file keys
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substring(2, 15);
-      const keyFrente = `documents/${timestamp}-${random}/FRONT.${data.file.name.split('.').pop()}`;
-      const keyDorso = data.file_back ? `documents/${timestamp}-${random}/BACK.${data.file_back.name.split('.').pop()}` : undefined;
-
-      console.log('Document files keys generated:', { keyFrente, keyDorso });
-
-      // Upload front file to R2
-      const { uploadUrl: uploadUrlFrente, fileKey: fileKeyFrente } = await generateSignedUploadUrl(
-        keyFrente,
-        data.file.type
-      );
-      await uploadFileToR2(data.file, uploadUrlFrente);
-
-      // Upload back file to R2 if exists
-      let fileKeyDorso: string | undefined;
-      if (data.file_back && keyDorso) {
-        const { uploadUrl: uploadUrlDorso, fileKey: fileKeyDorsoResult } = await generateSignedUploadUrl(
-          keyDorso,
-          data.file_back.type
-        );
-        await uploadFileToR2(data.file_back, uploadUrlDorso);
-        fileKeyDorso = fileKeyDorsoResult;
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      if (!workerId) {
+        throw new Error('Worker ID is required');
       }
+      formData.append('worker_id', workerId);
+      formData.append('document_type_id', data.document_type_id);
+      if (data.emission_date) formData.append('emission_date', data.emission_date);
+      if (data.expiry_date) formData.append('expiry_date', data.expiry_date);
+      formData.append('file', data.file);
+      if (data.file_back) formData.append('file_back', data.file_back);
 
-      // Create document record in database
-      await clienteHttp.post(`/documents`, {
-        worker_id: workerId,
-        document_type_id: data.document_type_id,
-        emission_date: data.emission_date,
-        expiry_date: data.expiry_date,
-        file_r2_key: fileKeyFrente,
-        file_r2_key_back: fileKeyDorso,
-        file_name: data.file.name,
-        file_size: data.file.size,
-        mime_type: data.file.type,
-      }, { requiresAuth: true });
+      // Upload document directly to backend
+      const response = await fetch(`${config.apiUrl}/documents/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload document');
+      }
 
       setUploadSuccess('Documento subido exitosamente. Pendiente de revisión');
       setShowUploadForm(false);

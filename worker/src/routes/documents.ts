@@ -477,6 +477,124 @@ documents.get('/download/:documentId', async (c) => {
 });
 
 /**
+ * POST /api/documents/upload - Subir documento de trabajador
+ */
+documents.post('/upload', async (c) => {
+  try {
+    const authContext = c.get('authContext');
+    const userId = authContext.userId;
+
+    // Parse multipart form data
+    const formData = await c.req.formData();
+    const workerId = formData.get('worker_id') as string;
+    const documentTypeId = formData.get('document_type_id') as string;
+    const emissionDate = formData.get('emission_date') as string | null;
+    const expiryDate = formData.get('expiry_date') as string | null;
+    const fileEntry = formData.get('file');
+    const fileBackEntry = formData.get('file_back');
+
+    if (!workerId || !documentTypeId || !fileEntry) {
+      return c.json(
+        { error: 'Missing required fields: worker_id, document_type_id, file' },
+        400
+      );
+    }
+
+    if (typeof fileEntry === 'string') {
+      return c.json({ error: 'Invalid file format' }, 400);
+    }
+
+    const file = fileEntry as File;
+    const fileBack = fileBackEntry && typeof fileBackEntry !== 'string' ? fileBackEntry as File : null;
+
+    // Verificar que el trabajador pertenece a una empresa del usuario
+    const worker = await c.env.DB
+      .prepare(
+        `SELECT w.id FROM workers w 
+         JOIN companies c ON w.company_id = c.id 
+         WHERE w.id = ? AND c.user_id = ?`
+      )
+      .bind(workerId, userId)
+      .first();
+
+    if (!worker) {
+      return c.json({ error: 'Worker not found or not authorized' }, 404);
+    }
+
+    // Verificar que el tipo de documento existe
+    const docType = await c.env.DB
+      .prepare('SELECT id FROM worker_document_types WHERE id = ?')
+      .bind(documentTypeId)
+      .first();
+
+    if (!docType) {
+      return c.json({ error: 'Document type not found' }, 404);
+    }
+
+    // Generate unique file keys
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 15);
+    const fileKey = `documents/${timestamp}-${random}/FRONT.${file.name.split('.').pop()}`;
+    const fileKeyBack = fileBack ? `documents/${timestamp}-${random}/BACK.${fileBack.name.split('.').pop()}` : null;
+
+    // Upload files to R2
+    const fileBuffer = await file.arrayBuffer();
+    await c.env.FILESTORE.put(fileKey, fileBuffer, {
+      httpMetadata: {
+        contentType: file.type,
+      },
+    });
+
+    if (fileBack && fileKeyBack) {
+      const fileBackBuffer = await fileBack.arrayBuffer();
+      await c.env.FILESTORE.put(fileKeyBack, fileBackBuffer, {
+        httpMetadata: {
+          contentType: fileBack.type,
+        },
+      });
+    }
+
+    // Create document record in database
+    const docId = generateId('doc');
+    const now = new Date().toISOString();
+
+    await c.env.DB
+      .prepare(
+        `INSERT INTO worker_documents (id, worker_id, document_type_id, status, emission_date, expiry_date, file_r2_key, file_r2_key_back, file_name, file_size, mime_type, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        docId,
+        workerId,
+        documentTypeId,
+        'PENDING',
+        emissionDate || null,
+        expiryDate || null,
+        fileKey,
+        fileKeyBack || null,
+        file.name,
+        file.size,
+        file.type,
+        now,
+        now
+      )
+      .run();
+
+    return c.json({
+      success: true,
+      data: {
+        id: docId,
+        file_r2_key: fileKey,
+        file_r2_key_back: fileKeyBack,
+      },
+    });
+  } catch (error) {
+    console.error('Document upload error:', error);
+    return c.json({ error: 'Failed to upload document', message: (error as Error).message }, 500);
+  }
+});
+
+/**
  * Helper: Calcular días restantes hasta vencimiento
  */
 function calculateDaysRemaining(expiryDate: string | null): number | null {
