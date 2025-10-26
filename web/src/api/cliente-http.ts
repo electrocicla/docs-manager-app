@@ -44,10 +44,18 @@ export class ClienteHttp {
 
   private async manejarRespuesta<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: 'Error desconocido',
-      }));
-      console.error(`API Error ${response.status}:`, errorData);
+      let errorData: any;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { error: 'Error desconocido', rawStatus: response.status, statusText: response.statusText };
+      }
+      console.error(`[ClienteHttp] API Error ${response.status}:`, {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+        url: response.url,
+      });
       throw new ApiError(
         errorData.error || 'Error en la solicitud',
         response.status,
@@ -80,11 +88,21 @@ export class ClienteHttp {
   ): Promise<T> {
     const { requiresAuth = false, ...fetchOptions } = opciones;
     
+    const headers = this.obtenerHeaders(requiresAuth) as Record<string, string>;
+    const body = data ? JSON.stringify(data) : undefined;
+    
+    console.log(`[ClienteHttp] POST ${endpoint}:`, {
+      requiresAuth,
+      hasAuth: !!headers['Authorization'],
+      token: headers['Authorization']?.substring(0, 50) + '...',
+      body: body ? JSON.parse(body) : undefined,
+    });
+    
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...fetchOptions,
       method: 'POST',
-      headers: this.obtenerHeaders(requiresAuth),
-      body: data ? JSON.stringify(data) : undefined,
+      headers,
+      body,
     });
 
     return this.manejarRespuesta<T>(response);

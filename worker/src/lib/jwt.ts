@@ -63,15 +63,22 @@ export async function validateCfAccessJwt(request: Request): Promise<JWTPayload 
 export async function getAuthContext(request: Request, env: Env): Promise<AuthContext | null> {
   // Try custom JWT first (for clients)
   const authHeader = request.headers.get('Authorization');
+  console.log('[JWT] Authorization header received:', authHeader ? 'YES (length: ' + authHeader.length + ')' : 'NO');
+  
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
+    console.log('[JWT] Attempting to verify token, length:', token.length);
     const payload = await verifyToken(token, env);
+    console.log('[JWT] Token verification result:', payload ? 'SUCCESS' : 'FAILED', payload ? { userId: payload.userId, email: payload.email, role: payload.role } : null);
+    
     if (payload && payload.userId && payload.email && payload.role) {
       return {
         userId: payload.userId as string,
         email: payload.email as string,
         role: payload.role as 'user' | 'professional' | 'admin',
       };
+    } else {
+      console.error('[JWT] Token missing required fields:', { userId: !!payload?.userId, email: !!payload?.email, role: !!payload?.role });
     }
   }
 
@@ -87,6 +94,7 @@ export async function getAuthContext(request: Request, env: Env): Promise<AuthCo
     };
   }
 
+  console.warn('[JWT] No valid authentication found');
   return null;
 }
 
@@ -95,13 +103,18 @@ export async function getAuthContext(request: Request, env: Env): Promise<AuthCo
  */
 export function requireAuth(allowedRoles?: ('user' | 'professional' | 'admin')[]) {
   return async (c: any, next: any) => {
+    console.log('[Auth Middleware] Checking authentication...');
     const authContext = await getAuthContext(c.req.raw, c.env);
     
     if (!authContext) {
+      console.error('[Auth Middleware] Authentication failed - no auth context');
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
+    console.log('[Auth Middleware] Authentication successful:', { userId: authContext.userId, role: authContext.role });
+
     if (allowedRoles && !allowedRoles.includes(authContext.role)) {
+      console.error('[Auth Middleware] Authorization failed - role not allowed:', authContext.role);
       return c.json({ error: 'Forbidden' }, 403);
     }
 
