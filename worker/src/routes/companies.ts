@@ -77,11 +77,18 @@ companies.get('/:id', async (c) => {
 companies.post('/', async (c) => {
   try {
     const authContext = c.get('authContext');
+    
+    if (!authContext || !authContext.userId) {
+      console.error('Auth context missing or invalid:', authContext);
+      return c.json({ error: 'Unauthorized - invalid auth context' }, 401);
+    }
+    
     const userId = authContext.userId;
     const body = await c.req.json();
     const db = c.env.DB;
 
     console.log('POST /companies - body recibido:', JSON.stringify(body));
+    console.log('POST /companies - userId:', userId);
 
     // Validar campos requeridos
     const { name, rut, industry, address, city, region, phone, email, website, employees_count, description } = body;
@@ -148,8 +155,16 @@ companies.post('/', async (c) => {
       201
     );
   } catch (error) {
-    console.error('Error creating company:', error);
-    return c.json({ error: 'Failed to create company', message: (error as Error).message }, 500);
+    console.error('Error creating company:', {
+      error: error,
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+    });
+    return c.json({ 
+      error: 'Failed to create company', 
+      message: (error as Error).message,
+      details: JSON.stringify(error)
+    }, 500);
   }
 });
 
