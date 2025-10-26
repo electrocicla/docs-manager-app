@@ -56,16 +56,15 @@ export async function generateSignedDownloadUrl(
   expiresIn: number = 3600
 ): Promise<{ downloadUrl: string }> {
   try {
-    const env = c.env as any;
+    // Use our worker endpoint to serve files securely
+    const baseUrl = c.env.ENVIRONMENT === 'production'
+      ? 'https://sr-prevencion.electrocicla.workers.dev'
+      : 'https://sr-prevencion.electrocicla.workers.dev';
 
-    // Generate a signed URL using R2's built-in signed URL functionality
-    const signedUrl = await env.FILESTORE.createSignedUrl(fileKey, {
-      expiresIn, // URL expires in specified seconds
-      method: 'GET',
-    });
+    const downloadUrl = `${baseUrl}/api/r2/files/${encodeURIComponent(fileKey)}`;
 
     return {
-      downloadUrl: signedUrl,
+      downloadUrl,
     };
   } catch (error) {
     console.error('Error generating signed download URL:', error);

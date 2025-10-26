@@ -52,6 +52,42 @@ router.post('/upload-url', requireAuth(), async (c) => {
 });
 
 /**
+ * GET /api/r2/files/:key
+ * Serve a file directly from R2 (authenticated)
+ */
+router.get('/files/:key', requireAuth(), async (c) => {
+  try {
+    const fileKey = c.req.param('key');
+    const env = c.env as any;
+
+    // Get the file from R2
+    const object = await env.FILESTORE.get(fileKey);
+
+    if (!object) {
+      return c.json({ error: 'File not found' }, 404);
+    }
+
+    // Return the file with appropriate headers
+    return new Response(object.body, {
+      headers: {
+        'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${fileKey.split('/').pop()}"`,
+        'Cache-Control': 'private, max-age=3600', // Cache for 1 hour
+      },
+    });
+  } catch (error) {
+    console.error('Error serving file:', error);
+    return c.json(
+      {
+        error: 'Failed to serve file',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    );
+  }
+});
+
+/**
  * POST /api/r2/download-url
  * Generate a signed URL for downloading a file from R2
  * Body: { fileKey: string, expiresIn?: number }
