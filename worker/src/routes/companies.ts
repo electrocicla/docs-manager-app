@@ -81,10 +81,15 @@ companies.post('/', async (c) => {
     const body = await c.req.json();
     const db = c.env.DB;
 
+    console.log('POST /companies - body recibido:', JSON.stringify(body));
+
     // Validar campos requeridos
     const { name, rut, industry, address, city, region, phone, email, website, employees_count, description } = body;
 
+    console.log('Campos extraídos:', { name, rut, city, region });
+
     if (!name || !rut || !city || !region) {
+      console.log('Validación fallida - campos faltantes:', { name: !!name, rut: !!rut, city: !!city, region: !!region });
       return c.json(
         { error: 'Missing required fields: name, rut, city, region' },
         400
