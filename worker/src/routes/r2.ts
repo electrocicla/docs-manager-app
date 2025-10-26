@@ -58,14 +58,19 @@ router.post('/upload-url', requireAuth(), async (c) => {
 router.get('/files/:key', async (c) => {
   try {
     const fileKey = c.req.param('key');
+    console.log('Serving file with key:', fileKey);
     const env = c.env as any;
 
     // Get the file from R2
     const object = await env.FILESTORE.get(fileKey);
+    console.log('R2 object retrieved:', !!object);
 
     if (!object) {
+      console.log('File not found in R2:', fileKey);
       return c.json({ error: 'File not found' }, 404);
     }
+
+    console.log('File found, content type:', object.httpMetadata?.contentType, 'size:', object.size);
 
     // Return the file with appropriate headers
     return new Response(object.body, {

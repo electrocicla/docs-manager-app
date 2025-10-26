@@ -404,20 +404,25 @@ workers.post('/:id/photo', async (c) => {
     // Generar key para R2
     const fileName = `profile-${workerId}-${Date.now()}.${file.name.split('.').pop()}`;
     const r2Key = generateR2Key('profiles', fileName);
+    console.log('Generated R2 key:', r2Key);
 
     // Convertir archivo a ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
+    console.log('File size:', arrayBuffer.byteLength, 'Content type:', file.type);
 
     // Subir a R2
+    console.log('Uploading to R2 with key:', r2Key);
     await uploadToR2(bucket, r2Key, arrayBuffer, {
       contentType: file.type,
     });
+    console.log('Successfully uploaded to R2');
 
     // Actualizar el trabajador con la nueva key
     await db
       .prepare('UPDATE workers SET profile_image_r2_key = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
       .bind(r2Key, workerId)
       .run();
+    console.log('Updated worker profile with key:', r2Key);
 
     return c.json({
       success: true,
