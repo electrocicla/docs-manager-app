@@ -13,7 +13,7 @@ export default function CompanyDetailsPage() {
   const { companyId } = useParams<{ companyId: string }>();
   const { usuario, cerrarSesion } = useAuth();
   const navigate = useNavigate();
-  const { companies } = useCompanies();
+  const { companies, loading: companiesLoading, fetchCompanies } = useCompanies();
   const { workers, loading: workersLoading, createWorker, updateWorker, deleteWorker } = useWorkers(companyId || '');
 
   const [company, setCompany] = useState<Company | null>(null);
@@ -22,6 +22,16 @@ export default function CompanyDetailsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<WorkerModel | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [success, setSuccess] = useState<string | undefined>();
+
+  // Cargar empresas al montar si no están cargadas
+  useEffect(() => {
+    if (companies.length === 0 && !companiesLoading) {
+      fetchCompanies().catch(err => {
+        console.error('Error al cargar empresas:', err);
+        setError('No se pudieron cargar las empresas');
+      });
+    }
+  }, []);
 
   // Buscar empresa y cargar trabajadores
   useEffect(() => {
@@ -149,10 +159,50 @@ export default function CompanyDetailsPage() {
               <p className="font-semibold text-gray-900">{company.city}</p>
             </div>
             <div>
+              <p className="text-sm text-gray-600">Región</p>
+              <p className="font-semibold text-gray-900">{company.region || '-'}</p>
+            </div>
+            <div>
               <p className="text-sm text-gray-600">Email</p>
               <p className="font-semibold text-gray-900 truncate">{company.email || '-'}</p>
             </div>
+            <div>
+              <p className="text-sm text-gray-600">Teléfono</p>
+              <p className="font-semibold text-gray-900">{company.phone || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Industria</p>
+              <p className="font-semibold text-gray-900">{company.industry || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Sitio Web</p>
+              <p className="font-semibold text-gray-900 truncate">
+                {company.website ? (
+                  <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                    {company.website}
+                  </a>
+                ) : (
+                  '-'
+                )}
+              </p>
+            </div>
           </div>
+          
+          {/* Descripción */}
+          {company.description && (
+            <div className="pt-4 border-t border-gray-200 mt-4">
+              <p className="text-sm text-gray-600">Descripción</p>
+              <p className="text-gray-900 mt-1">{company.description}</p>
+            </div>
+          )}
+          
+          {/* Dirección */}
+          {company.address && (
+            <div className="pt-4 border-t border-gray-200 mt-4">
+              <p className="text-sm text-gray-600">Dirección</p>
+              <p className="text-gray-900 mt-1">{company.address}</p>
+            </div>
+          )}
         </div>
       </header>
 

@@ -99,8 +99,8 @@ export function CompanyCard({
             <ChevronRight className="w-4 h-4" />
           </button>
 
-          {/* Edit and Delete buttons - only for admin */}
-          {isAdmin && (
+          {/* Edit and Delete buttons - always show, or only for admin */}
+          {(isAdmin || onEdit || onDelete) && (
             <div className="flex gap-2">
               {onEdit && (
                 <button
