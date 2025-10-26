@@ -460,17 +460,27 @@ documents.get('/download/:documentId', async (c) => {
       return c.json({ error: 'Document not authorized for your account' }, 403);
     }
 
-    // Generar URL firmada para descarga
+    // Generar URLs firmadas para descarga
     const { downloadUrl } = await generateSignedDownloadUrl(
       c,
       doc.file_r2_key as string
     );
 
+    let downloadUrlBack = null;
+    if (doc.file_r2_key_back) {
+      const { downloadUrl: backUrl } = await generateSignedDownloadUrl(
+        c,
+        doc.file_r2_key_back as string
+      );
+      downloadUrlBack = backUrl;
+    }
+
     return c.json({
       success: true,
       data: {
         downloadUrl,
-        file_r2_key_back: doc.file_r2_key_back,
+        downloadUrlBack,
+        hasBackFile: !!doc.file_r2_key_back,
       },
     });
   } catch (error) {

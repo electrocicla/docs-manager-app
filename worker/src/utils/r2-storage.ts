@@ -58,13 +58,14 @@ export async function generateSignedDownloadUrl(
   try {
     const env = c.env as any;
 
-    // For Cloudflare R2, we can generate a direct public URL if the bucket is public
-    // Or we can use signed URLs with the R2 API
-    const baseUrl = env.R2_BUCKET_PUBLIC_URL || `https://sr-prevencion-files.electrocicla.workers.dev`;
-    const downloadUrl = `${baseUrl}/${fileKey}`;
+    // Generate a signed URL using R2's built-in signed URL functionality
+    const signedUrl = await env.FILESTORE.createSignedUrl(fileKey, {
+      expiresIn, // URL expires in specified seconds
+      method: 'GET',
+    });
 
     return {
-      downloadUrl,
+      downloadUrl: signedUrl,
     };
   } catch (error) {
     console.error('Error generating signed download URL:', error);

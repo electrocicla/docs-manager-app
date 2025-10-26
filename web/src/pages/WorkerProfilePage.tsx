@@ -148,7 +148,7 @@ export default function WorkerProfilePage() {
 
   const handleDownload = async (documentId: string) => {
     try {
-      // Call the download endpoint to get the signed URL
+      // Call the download endpoint to get the signed URLs
       const response = await fetch(`${config.apiUrl}/documents/download/${documentId}`, {
         method: 'GET',
         headers: {
@@ -162,15 +162,27 @@ export default function WorkerProfilePage() {
       }
 
       const data = await response.json();
-      const downloadUrl = data.data.downloadUrl;
+      const { downloadUrl, downloadUrlBack, hasBackFile } = data.data;
 
-      // Create a temporary link and trigger download
+      // Download front file
       const link = document.createElement('a');
       link.href = downloadUrl;
       link.download = ''; // Let the browser determine the filename
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      // Download back file if it exists
+      if (hasBackFile && downloadUrlBack) {
+        setTimeout(() => {
+          const backLink = document.createElement('a');
+          backLink.href = downloadUrlBack;
+          backLink.download = '';
+          document.body.appendChild(backLink);
+          backLink.click();
+          document.body.removeChild(backLink);
+        }, 500); // Small delay to avoid browser blocking
+      }
     } catch (err) {
       console.error('Download error:', err);
       setUploadError(
