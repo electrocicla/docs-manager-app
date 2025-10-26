@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 import { useCompanies, useWorkers } from '../hooks/useCompany';
 import WorkerList from '../components/WorkerList';
 import WorkerForm from '../components/WorkerForm';
-import { Boton } from '../components/ui/Boton';
-import { ArrowLeft, LogOut, AlertCircle, Building2, Users } from 'lucide-react';
+import { DashboardLayout } from '../components/DashboardLayout';
+import { AlertCircle, Users } from 'lucide-react';
 import type { Company, WorkerModel, WorkerInput } from '../types/company';
 import { formatRut } from '../utils/rut';
 
 export default function CompanyDetailsPage() {
   const { companyId } = useParams<{ companyId: string }>();
-  const { usuario, cerrarSesion } = useAuth();
   const navigate = useNavigate();
   const { companies, loading: companiesLoading, fetchCompanies } = useCompanies();
   const { workers, loading: workersLoading, createWorker, updateWorker, deleteWorker } = useWorkers(companyId || '');
@@ -102,114 +100,88 @@ export default function CompanyDetailsPage() {
 
   if (!company) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-orange-600 mx-auto mb-4" />
-          <p className="text-gray-600">Cargando empresa...</p>
+      <DashboardLayout
+        title="Cargando Empresa"
+        subtitle="Por favor espere..."
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-orange-600 mx-auto mb-4" />
+            <p className="text-gray-600">Cargando empresa...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/companies')}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Volver a empresas"
-              >
-                <ArrowLeft className="w-6 h-6 text-gray-600" />
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  <Building2 className="inline w-8 h-8 mr-2 text-primary-600" />
-                  {company.name}
-                </h1>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Welcome back</p>
-                <p className="font-semibold text-gray-900">{usuario?.full_name}</p>
-              </div>
-              <Boton variante="secondary" onClick={cerrarSesion}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Boton>
-            </div>
+    <DashboardLayout
+      title={`${company.name} - Detalles`}
+      subtitle={`RUT: ${formatRut(company.rut || '')} • ${company.employees_count || 0} empleados`}
+    >
+      {/* Información de la empresa */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <p className="text-sm text-gray-600">RUT</p>
+            <p className="font-semibold text-gray-900">{company.rut ? formatRut(company.rut) : '-'}</p>
           </div>
-
-          {/* Información de la empresa */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-            <div>
-              <p className="text-sm text-gray-600">RUT</p>
-              <p className="font-semibold text-gray-900">{company.rut ? formatRut(company.rut) : '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Empleados</p>
-              <p className="font-semibold text-gray-900">{company.employees_count || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Ciudad</p>
-              <p className="font-semibold text-gray-900">{company.city}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Región</p>
-              <p className="font-semibold text-gray-900">{company.region || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Email</p>
-              <p className="font-semibold text-gray-900 truncate">{company.email || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Teléfono</p>
-              <p className="font-semibold text-gray-900">{company.phone || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Industria</p>
-              <p className="font-semibold text-gray-900">{company.industry || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Sitio Web</p>
-              <p className="font-semibold text-gray-900 truncate">
-                {company.website ? (
-                  <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
-                    {company.website}
-                  </a>
-                ) : (
-                  '-'
-                )}
-              </p>
-            </div>
+          <div>
+            <p className="text-sm text-gray-600">Empleados</p>
+            <p className="font-semibold text-gray-900">{company.employees_count || '-'}</p>
           </div>
-          
-          {/* Descripción */}
-          {company.description && (
-            <div className="pt-4 border-t border-gray-200 mt-4">
-              <p className="text-sm text-gray-600">Descripción</p>
-              <p className="text-gray-900 mt-1">{company.description}</p>
-            </div>
-          )}
-          
-          {/* Dirección */}
-          {company.address && (
-            <div className="pt-4 border-t border-gray-200 mt-4">
-              <p className="text-sm text-gray-600">Dirección</p>
-              <p className="text-gray-900 mt-1">{company.address}</p>
-            </div>
-          )}
+          <div>
+            <p className="text-sm text-gray-600">Ciudad</p>
+            <p className="font-semibold text-gray-900">{company.city}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Región</p>
+            <p className="font-semibold text-gray-900">{company.region || '-'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Email</p>
+            <p className="font-semibold text-gray-900 truncate">{company.email || '-'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Teléfono</p>
+            <p className="font-semibold text-gray-900">{company.phone || '-'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Industria</p>
+            <p className="font-semibold text-gray-900">{company.industry || '-'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Sitio Web</p>
+            <p className="font-semibold text-gray-900 truncate">
+              {company.website ? (
+                <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                  {company.website}
+                </a>
+              ) : (
+                '-'
+              )}
+            </p>
+          </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        
-        {/* Alert Messages */}
+        {/* Descripción */}
+        {company.description && (
+          <div className="pt-4 border-t border-gray-200 mt-4">
+            <p className="text-sm text-gray-600">Descripción</p>
+            <p className="text-gray-900 mt-1">{company.description}</p>
+          </div>
+        )}
+
+        {/* Dirección */}
+        {company.address && (
+          <div className="pt-4 border-t border-gray-200 mt-4">
+            <p className="text-sm text-gray-600">Dirección</p>
+            <p className="text-gray-900 mt-1">{company.address}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Alert Messages */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
@@ -289,7 +261,6 @@ export default function CompanyDetailsPage() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }

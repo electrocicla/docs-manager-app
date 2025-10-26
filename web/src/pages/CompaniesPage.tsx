@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useCompany } from '../hooks/useCompanyManager';
 import CompanyList from '../components/CompanyList';
 import CompanyForm from '../components/CompanyForm';
-import { Boton } from '../components/ui/Boton';
-import { LogOut, ArrowLeft, AlertCircle, Shield } from 'lucide-react';
+import { DashboardLayout } from '../components/DashboardLayout';
+import { AlertCircle } from 'lucide-react';
 import type { Company, CompanyInput } from '../types/company';
 
 export default function CompaniesPage() {
-  const { usuario, cerrarSesion } = useAuth();
-  const navigate = useNavigate();
+  const { usuario } = useAuth();
   const { companies, loading, createCompany, updateCompany, deleteCompany } = useCompany();
   
   const [showForm, setShowForm] = useState(false);
@@ -79,51 +77,11 @@ export default function CompaniesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Volver al dashboard"
-              >
-                <ArrowLeft className="w-6 h-6 text-gray-600" />
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Gestión de Empresas</h1>
-                <p className="text-gray-600 mt-1">Manage your companies and workers</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Welcome back</p>
-                <p className="font-semibold text-gray-900">{usuario?.full_name}</p>
-              </div>
-              {usuario?.role === 'admin' && (
-                <button
-                  onClick={() => navigate('/admin/documents')}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
-                >
-                  <Shield className="w-4 h-4" />
-                  <span>Admin Panel</span>
-                </button>
-              )}
-              <Boton variante="secondary" onClick={cerrarSesion}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Boton>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        
-        {/* Alert Messages */}
+    <DashboardLayout
+      title="Gestión de Empresas"
+      subtitle="Manage your companies and workers"
+    >
+      {/* Alert Messages */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
@@ -195,7 +153,6 @@ export default function CompaniesPage() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }

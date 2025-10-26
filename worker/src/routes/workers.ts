@@ -262,7 +262,7 @@ workers.put('/:id', async (c) => {
       return c.json({ error: 'Worker not authorized for your account' }, 403);
     }
 
-    const { first_name, last_name, rut, email, phone, job_title, department, additional_comments, status } = body;
+    const { first_name, last_name, rut, email, phone, job_title, department, additional_comments, status, profile_image_r2_key } = body;
     const now = new Date().toISOString();
 
     // Construir query dinámico según campos proporcionados
@@ -278,6 +278,7 @@ workers.put('/:id', async (c) => {
     if (department !== undefined) { updates.push('department = ?'); values.push(department); }
     if (additional_comments !== undefined) { updates.push('additional_comments = ?'); values.push(additional_comments); }
     if (status !== undefined) { updates.push('status = ?'); values.push(status); }
+    if (profile_image_r2_key !== undefined) { updates.push('profile_image_r2_key = ?'); values.push(profile_image_r2_key); }
 
     updates.push('updated_at = ?');
     values.push(now);

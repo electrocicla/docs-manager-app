@@ -18,8 +18,8 @@ function getDaysRemaining(expiryDate?: string): number | null {
  */
 function getStatusColor(status: DocumentStatus): string {
   const colors: Record<DocumentStatus, string> = {
-    'PENDING': 'bg-gray-100 text-gray-800 border-gray-300',
-    'UNDER_REVIEW': 'bg-orange-100 text-orange-800 border-orange-300',
+    'PENDING': 'bg-orange-100 text-orange-800 border-orange-300',
+    'UNDER_REVIEW': 'bg-yellow-100 text-yellow-800 border-yellow-300',
     'IN_REVIEW': 'bg-yellow-100 text-yellow-800 border-yellow-300',
     'APPROVED': 'bg-green-100 text-green-800 border-green-300',
     'EXPIRED': 'bg-red-100 text-red-800 border-red-300',
@@ -33,12 +33,12 @@ function getStatusColor(status: DocumentStatus): string {
  */
 function getStatusLabel(status: DocumentStatus): string {
   const labels: Record<DocumentStatus, string> = {
-    'PENDING': 'Faltante',
-    'UNDER_REVIEW': 'En espera de revisión',
+    'PENDING': 'En espera de revisión',
+    'UNDER_REVIEW': 'En revisión',
     'IN_REVIEW': 'En revisión',
     'APPROVED': 'Aprobado/Vigente',
-    'EXPIRED': 'Obsoleto/Vencido',
-    'REJECTED': 'Rechazado',
+    'EXPIRED': 'Vencido/Rechazado',
+    'REJECTED': 'Vencido/Rechazado',
   };
   return labels[status];
 }

@@ -5,10 +5,9 @@ import { useWorkerProfile, useWorkerDocuments } from '../hooks/useCompany';
 import { config } from '../config';
 import { DocumentGrid } from '../components/DocumentGrid';
 import DocumentUploadForm from '../components/DocumentUploadForm';
-import { Boton } from '../components/ui/Boton';
+import { DashboardLayout } from '../components/DashboardLayout';
+import { ProfilePhotoUpload } from '../components/ProfilePhotoUpload';
 import {
-  ArrowLeft,
-  LogOut,
   AlertCircle,
   User,
   Mail,
@@ -22,7 +21,7 @@ import { formatRut } from '../utils/rut';
 
 export default function WorkerProfilePage() {
   const { workerId, companyId } = useParams<{ workerId: string; companyId: string }>();
-  const { usuario, cerrarSesion } = useAuth();
+  const { usuario } = useAuth();
   const navigate = useNavigate();
   const { profile, loading, fetchProfile } = useWorkerProfile(workerId || '');
   const { deleteDocument } = useWorkerDocuments(workerId || '');
@@ -41,54 +40,39 @@ export default function WorkerProfilePage() {
 
   if (!profile && loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin mb-4">
-            <User className="w-8 h-8 text-primary-600" />
+      <DashboardLayout
+        title="Cargando Perfil"
+        subtitle="Por favor espere..."
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin mb-4">
+              <User className="w-8 h-8 text-primary-600" />
+            </div>
+            <p className="text-gray-600">Cargando perfil del trabajador...</p>
           </div>
-          <p className="text-gray-600">Cargando perfil del trabajador...</p>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (!profile || !profile.worker) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex justify-between items-center">
-              <button
-                onClick={() => navigate(`/company/${companyId}/workers`)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-6 h-6 text-gray-600" />
-              </button>
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Welcome back</p>
-                  <p className="font-semibold text-gray-900">{usuario?.full_name}</p>
-                </div>
-                <Boton variante="secondary" onClick={cerrarSesion}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Boton>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-orange-600 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">Trabajador no encontrado</p>
-            <Boton onClick={() => navigate(`/company/${companyId}/workers`)}>
-              Volver a Trabajadores
-            </Boton>
-          </div>
-        </main>
-      </div>
+      <DashboardLayout
+        title="Trabajador no encontrado"
+        subtitle="El perfil solicitado no está disponible"
+      >
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-orange-600 mx-auto mb-4" />
+          <p className="text-gray-600 mb-4">Trabajador no encontrado</p>
+          <button
+            onClick={() => navigate(`/company/${companyId}/workers`)}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+          >
+            Volver a Trabajadores
+          </button>
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -218,44 +202,11 @@ export default function WorkerProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate(`/company/${companyId}`)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-6 h-6 text-gray-600" />
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  <User className="inline w-8 h-8 mr-2 text-primary-600" />
-                  {worker.first_name} {worker.last_name}
-                </h1>
-                <p className="text-gray-600 mt-1">Perfil del Trabajador</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Welcome back</p>
-                <p className="font-semibold text-gray-900">{usuario?.full_name}</p>
-              </div>
-              <Boton variante="secondary" onClick={cerrarSesion}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Boton>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        
-        {/* Alert Messages */}
+    <DashboardLayout
+      title={`${worker.first_name} ${worker.last_name}`}
+      subtitle={`RUT: ${formatRut(worker.rut)} • Perfil del Trabajador`}
+    >
+      {/* Alert Messages */}
         {uploadError && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
@@ -284,8 +235,20 @@ export default function WorkerProfilePage() {
           {/* Información Personal */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Información Personal</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Foto de Perfil */}
+              <div className="lg:col-span-1">
+                <ProfilePhotoUpload
+                  workerId={worker.id}
+                  currentPhotoKey={worker.profile_image_r2_key}
+                  onPhotoUpdated={() => fetchProfile()}
+                />
+              </div>
+
+              {/* Información del Trabajador */}
+              <div className="lg:col-span-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* RUT */}
               <div>
@@ -341,8 +304,10 @@ export default function WorkerProfilePage() {
                 <p className="text-lg font-semibold text-gray-900">
                   {new Date(worker.created_at).toLocaleDateString('es-CL')}
                 </p>
+                </div>
               </div>
             </div>
+          </div>
 
             {/* Comentarios */}
             {worker.additional_comments && (
@@ -368,16 +333,15 @@ export default function WorkerProfilePage() {
           </div>
         </div>
 
-        {/* Upload Form Modal */}
-        {showUploadForm && (
-          <DocumentUploadForm
-            documentTypes={profile.documentTypes}
-            onSubmit={handleUploadSubmit}
-            onCancel={() => setShowUploadForm(false)}
-            loading={uploading}
-          />
-        )}
-      </main>
-    </div>
+      {/* Upload Form Modal */}
+      {showUploadForm && (
+        <DocumentUploadForm
+          documentTypes={profile.documentTypes}
+          onSubmit={handleUploadSubmit}
+          onCancel={() => setShowUploadForm(false)}
+          loading={uploading}
+        />
+      )}
+    </DashboardLayout>
   );
 }

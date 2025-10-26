@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useAdminDocuments } from '../hooks/useCompany';
-import { Boton } from '../components/ui/Boton';
+import { DashboardLayout } from '../components/DashboardLayout';
 import { generateSignedDownloadUrl } from '../utils/r2-storage';
 import {
-  ArrowLeft,
-  LogOut,
   AlertCircle,
   FileText,
   Download,
@@ -30,7 +28,7 @@ interface FilteredDocument extends DocumentWithWorkerInfo {
 }
 
 export default function AdminDocumentReviewPage() {
-  const { usuario, cerrarSesion } = useAuth();
+  const { usuario } = useAuth();
   const navigate = useNavigate();
   const { documents: apiDocuments, loading: apiLoading, fetchPendingDocuments, updateDocumentStatus } = useAdminDocuments();
   
@@ -196,44 +194,11 @@ export default function AdminDocumentReviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/companies')}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-6 h-6 text-gray-600" />
-              </button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  <FileText className="inline w-8 h-8 mr-2 text-primary-600" />
-                  Panel de Revisión de Documentos
-                </h1>
-                <p className="text-gray-600 mt-1">Administrador</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Welcome back</p>
-                <p className="font-semibold text-gray-900">{usuario?.full_name}</p>
-              </div>
-              <Boton variante="secondary" onClick={cerrarSesion}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Boton>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        
-        {/* Alert Messages */}
+    <DashboardLayout
+      title="Panel de Revisión de Documentos"
+      subtitle="Administrador - Gestiona la aprobación de documentos"
+    >
+      {/* Alert Messages */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
@@ -579,7 +544,6 @@ export default function AdminDocumentReviewPage() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+    </DashboardLayout>
   );
 }
