@@ -260,7 +260,7 @@ export function useWorkerProfile(workerId: string) {
       // Calculate profile completeness
       const now = new Date();
       const documentsApproved = documents.filter(doc => doc.status === 'APPROVED').length;
-      const documentsPending = documents.filter(doc => ['PENDING', 'UNDER_REVIEW', 'IN_REVIEW'].includes(doc.status)).length;
+      const documentsPending = documents.filter(doc => doc.status === 'PENDING').length;
       const documentsExpired = documents.filter(doc => doc.expiry_date && new Date(doc.expiry_date) < now).length;
       const hasPhoto = !!worker.profile_image_r2_key;
       const totalRequiredDocs = documentTypes.length;

@@ -580,7 +580,7 @@ documents.post('/upload', async (c) => {
         docId,
         workerId,
         documentTypeId,
-        'UNDER_REVIEW', // Estado inicial: En espera de revisión
+        'PENDING', // Estado inicial: Revisión pendiente
         emissionDate || null,
         expiryDate || null,
         fileKey,

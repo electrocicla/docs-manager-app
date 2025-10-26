@@ -48,7 +48,8 @@ interface DocumentCardProps {
   documentType: WorkerDocumentType;
   isAdmin?: boolean;
   onStatusChange?: (status: DocumentStatus) => void;
-  onDownload?: () => void;
+  onDownloadFront?: () => void;
+  onDownloadBack?: () => void;
   onDelete?: () => void;
 }
 
@@ -60,7 +61,8 @@ export function DocumentCard({
   documentType,
   isAdmin = false,
   onStatusChange,
-  onDownload,
+  onDownloadFront,
+  onDownloadBack,
   onDelete,
 }: DocumentCardProps) {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -173,13 +175,23 @@ export function DocumentCard({
 
       {/* Actions */}
       <div className="space-y-2">
-        {onDownload && (
+        {/* Download buttons */}
+        {onDownloadFront && (
           <button
-            onClick={onDownload}
+            onClick={onDownloadFront}
             className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-lg transition-colors text-sm font-medium"
           >
             <Download className="w-4 h-4" />
-            <span>Descargar</span>
+            <span>Descargar {document.file_r2_key_back ? 'Frente' : ''}</span>
+          </button>
+        )}
+        {onDownloadBack && document.file_r2_key_back && (
+          <button
+            onClick={onDownloadBack}
+            className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-lg transition-colors text-sm font-medium"
+          >
+            <Download className="w-4 h-4" />
+            <span>Descargar Reverso</span>
           </button>
         )}
         {onDelete && (

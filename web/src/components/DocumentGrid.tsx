@@ -8,7 +8,8 @@ interface DocumentGridProps {
   loading: boolean;
   onUploadClick: () => void;
   isAdmin?: boolean;
-  onDownload?: (documentId: string) => void;
+  onDownloadFront?: (documentId: string) => void;
+  onDownloadBack?: (documentId: string) => void;
   onDelete?: (documentId: string) => void;
 }
 
@@ -22,7 +23,8 @@ export function DocumentGrid({
   loading,
   onUploadClick,
   isAdmin = false,
-  onDownload,
+  onDownloadFront,
+  onDownloadBack,
   onDelete,
 }: DocumentGridProps) {
   if (loading) {
@@ -72,7 +74,8 @@ export function DocumentGrid({
                 document={document}
                 documentType={docType}
                 isAdmin={isAdmin}
-                onDownload={onDownload ? () => onDownload(document.id) : undefined}
+                onDownloadFront={onDownloadFront ? () => onDownloadFront(document.id) : undefined}
+                onDownloadBack={onDownloadBack ? () => onDownloadBack(document.id) : undefined}
                 onDelete={onDelete ? () => onDelete(document.id) : undefined}
               />
             );

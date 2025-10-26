@@ -146,7 +146,15 @@ export default function WorkerProfilePage() {
     }
   };
 
-  const handleDownload = async (documentId: string) => {
+  const handleDownloadFront = async (documentId: string) => {
+    await downloadFile(documentId, 'front');
+  };
+
+  const handleDownloadBack = async (documentId: string) => {
+    await downloadFile(documentId, 'back');
+  };
+
+  const downloadFile = async (documentId: string, fileType: 'front' | 'back') => {
     try {
       // Call the download endpoint to get the signed URLs
       const response = await fetch(`${config.apiUrl}/documents/download/${documentId}`, {
@@ -164,25 +172,23 @@ export default function WorkerProfilePage() {
       const data = await response.json();
       const { downloadUrl, downloadUrlBack, hasBackFile } = data.data;
 
-      // Download front file
+      // Choose which URL to use based on fileType
+      let urlToDownload: string;
+      if (fileType === 'front') {
+        urlToDownload = downloadUrl;
+      } else if (fileType === 'back' && hasBackFile && downloadUrlBack) {
+        urlToDownload = downloadUrlBack;
+      } else {
+        throw new Error('Archivo no disponible');
+      }
+
+      // Create a temporary link and trigger download
       const link = document.createElement('a');
-      link.href = downloadUrl;
+      link.href = urlToDownload;
       link.download = ''; // Let the browser determine the filename
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      // Download back file if it exists
-      if (hasBackFile && downloadUrlBack) {
-        setTimeout(() => {
-          const backLink = document.createElement('a');
-          backLink.href = downloadUrlBack;
-          backLink.download = '';
-          document.body.appendChild(backLink);
-          backLink.click();
-          document.body.removeChild(backLink);
-        }, 500); // Small delay to avoid browser blocking
-      }
     } catch (err) {
       console.error('Download error:', err);
       setUploadError(
@@ -355,7 +361,8 @@ export default function WorkerProfilePage() {
               loading={uploading}
               onUploadClick={() => setShowUploadForm(true)}
               isAdmin={usuario?.role === 'admin'}
-              onDownload={handleDownload}
+              onDownloadFront={handleDownloadFront}
+              onDownloadBack={handleDownloadBack}
               onDelete={handleDelete}
             />
           </div>

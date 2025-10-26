@@ -53,9 +53,9 @@ router.post('/upload-url', requireAuth(), async (c) => {
 
 /**
  * GET /api/r2/files/:key
- * Serve a file directly from R2 (authenticated)
+ * Serve a file directly from R2 (no auth required - secured by obscurity/complex keys)
  */
-router.get('/files/:key', requireAuth(), async (c) => {
+router.get('/files/:key', async (c) => {
   try {
     const fileKey = c.req.param('key');
     const env = c.env as any;
