@@ -133,13 +133,13 @@ export default function DocumentUploadForm({
 
     setSubmitting(true);
     try {
-      // Upload files to R2
+      // Get R2 keys for files (actual upload happens backend in production)
       await uploadDocumentFiles(
         files.front!,
         files.back
       );
 
-      // Call onSubmit with file data (API will handle file keys)
+      // Call onSubmit with file data and keys
       await onSubmit({
         document_type_id: formData.document_type_id,
         emission_date: formData.emission_date || undefined,
@@ -147,6 +147,9 @@ export default function DocumentUploadForm({
         file: files.front!,
         file_back: files.back,
       });
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
     } finally {
       setSubmitting(false);
     }

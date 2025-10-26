@@ -65,13 +65,16 @@ export default function AdminDocumentReviewPage() {
   // Actualizar documentos locales cuando los datos de la API cambian
   useEffect(() => {
     if (!apiLoading && apiDocuments.length > 0) {
-      const mappedDocs = apiDocuments.map(doc => ({
+      const mappedDocs = apiDocuments.map((doc: any) => ({
         ...doc,
-        worker_name: 'Trabajador',  // TODO: Agregar nombre del trabajador desde API
-        company_name: 'Empresa',     // TODO: Agregar nombre de la empresa desde API
-        document_type_name: 'Documento', // TODO: Agregar tipo de documento desde API
+        worker_name: `${doc.first_name} ${doc.last_name}`,
+        company_name: doc.company_name,
+        document_type_name: doc.document_type_name,
       }));
       setDocuments(mappedDocs);
+      setLoading(false);
+    } else if (!apiLoading && apiDocuments.length === 0) {
+      setDocuments([]);
       setLoading(false);
     }
   }, [apiDocuments, apiLoading]);

@@ -1,27 +1,27 @@
-import { User, Mail, Phone } from 'lucide-react';
+import { User, Mail, Phone, Edit, Trash2, LogIn } from 'lucide-react';
 import type { WorkerModel } from '../types/company';
 import { formatRut } from '../utils/rut';
 
 interface WorkerCardProps {
   worker: WorkerModel;
+  companyId?: string;
   documentsStatus?: {
     approved: number;
     pending: number;
     expired: number;
     total: number;
   };
-  onSelect: (worker: WorkerModel) => void;
+  onEdit?: (worker: WorkerModel) => void;
+  onDelete?: (worker: WorkerModel) => void;
+  onAccess?: (worker: WorkerModel) => void;
 }
 
 /**
- * Tarjeta de trabajador con foto de perfil, nombre y estado de documentos
+ * Tarjeta de trabajador con foto de perfil, nombre, estado de documentos y botones de acción
  */
-export function WorkerCard({ worker, documentsStatus, onSelect }: WorkerCardProps) {
+export function WorkerCard({ worker, documentsStatus, onEdit, onDelete, onAccess }: WorkerCardProps) {
   return (
-    <div
-      onClick={() => onSelect(worker)}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-all cursor-pointer overflow-hidden"
-    >
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
       {/* Foto de perfil */}
       <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center">
         {worker.profile_image_r2_key ? (
@@ -48,7 +48,7 @@ export function WorkerCard({ worker, documentsStatus, onSelect }: WorkerCardProp
       </div>
 
       {/* Info */}
-      <div className="p-4">
+      <div className="p-4 flex-1 flex flex-col">
         <h3 className="font-bold text-gray-900">
           {worker.first_name} {worker.last_name}
         </h3>
@@ -74,7 +74,7 @@ export function WorkerCard({ worker, documentsStatus, onSelect }: WorkerCardProp
 
         {/* Documentos status */}
         {documentsStatus && (
-          <div className="border-t border-gray-200 pt-3">
+          <div className="border-t border-gray-200 pt-3 mb-4">
             <div className="grid grid-cols-3 gap-2 text-center">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Aprobados</p>
@@ -91,7 +91,52 @@ export function WorkerCard({ worker, documentsStatus, onSelect }: WorkerCardProp
             </div>
           </div>
         )}
+
+        {/* Action Buttons - Removed hover overlay, added direct buttons */}
+        <div className="border-t border-gray-200 pt-3 mt-auto space-y-2">
+          {onAccess && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAccess(worker);
+              }}
+              className="w-full inline-flex items-center justify-center space-x-2 px-3 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Acceder</span>
+            </button>
+          )}
+
+          <div className="flex gap-2">
+            {onEdit && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(worker);
+                }}
+                className="flex-1 inline-flex items-center justify-center space-x-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Editar</span>
+              </button>
+            )}
+
+            {onDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(worker);
+                }}
+                className="flex-1 inline-flex items-center justify-center space-x-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg font-medium hover:bg-red-200 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Eliminar</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+

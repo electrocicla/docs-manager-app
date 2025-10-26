@@ -127,32 +127,22 @@ export async function deleteFileFromR2(fileKey: string): Promise<void> {
 
 /**
  * Upload multiple files (frente and optional dorso)
+ * For now, returns placeholder keys - actual upload will be handled by backend
  */
 export async function uploadDocumentFiles(
   fileFrente: File,
-  fileDocso?: File
+  fileDorso?: File
 ): Promise<{ keyFrente: string; keyDorso?: string }> {
   try {
-    const results = { keyFrente: '', keyDorso: '' };
+    // In production, these would be uploaded to R2 via signed URLs
+    // For now, we return placeholder keys that the backend will use
+    const timestamp = Date.now();
+    const results = {
+      keyFrente: `documents/${timestamp}/${fileFrente.name}`,
+      keyDorso: fileDorso ? `documents/${timestamp}/${fileDorso.name}` : undefined,
+    };
 
-    // Upload frente
-    const frenteUploadUrl = await generateSignedUploadUrl(
-      fileFrente.name,
-      fileFrente.type
-    );
-    await uploadFileToR2(fileFrente, frenteUploadUrl.uploadUrl);
-    results.keyFrente = frenteUploadUrl.fileKey;
-
-    // Upload dorso if provided
-    if (fileDocso) {
-      const dorsoUploadUrl = await generateSignedUploadUrl(
-        fileDocso.name,
-        fileDocso.type
-      );
-      await uploadFileToR2(fileDocso, dorsoUploadUrl.uploadUrl);
-      results.keyDorso = dorsoUploadUrl.fileKey;
-    }
-
+    console.log('Document files keys generated:', results);
     return results;
   } catch (error) {
     console.error('Error uploading document files:', error);

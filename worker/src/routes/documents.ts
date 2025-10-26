@@ -9,6 +9,78 @@ const documents = new Hono<{ Bindings: Env; Variables: Variables }>();
 documents.use('/*', requireAuth());
 
 /**
+ * GET /api/documents/types - Obtener tipos de documentos requeridos
+ */
+documents.get('/types', async (c) => {
+  try {
+    const db = c.env.DB;
+
+    const types = await db
+      .prepare(
+        `SELECT id, code, name, description, requires_front_back, requires_expiry_date, order_index, created_at
+         FROM worker_document_types
+         ORDER BY order_index ASC`
+      )
+      .all();
+
+    return c.json({
+      success: true,
+      data: types.results || [],
+    });
+  } catch (error) {
+    console.error('Error fetching document types:', error);
+    return c.json({ error: 'Failed to fetch document types', message: (error as Error).message }, 500);
+  }
+});
+
+/**
+ * GET /api/documents/pending - Obtener documentos pendientes de revisión (solo para admin)
+ */
+documents.get('/pending', async (c) => {
+  try {
+    const authContext = c.get('authContext');
+    const isAdmin = authContext.role === 'admin';
+    const db = c.env.DB;
+
+    if (!isAdmin) {
+      return c.json({ error: 'Only admins can access pending documents' }, 403);
+    }
+
+    const docs = await db
+      .prepare(
+        `SELECT 
+          wd.id, wd.worker_id, wd.document_type_id, 
+          w.first_name, w.last_name, w.rut as worker_rut,
+          co.id as company_id, co.name as company_name, co.rut as company_rut,
+          wdt.code as document_type_code, wdt.name as document_type_name, wdt.description as document_type_description,
+          wd.status, wd.emission_date, wd.expiry_date, wd.file_r2_key, wd.file_r2_key_back,
+          wd.file_name, wd.file_size, wd.mime_type, wd.reviewed_by, wd.reviewed_at, wd.admin_comments,
+          wd.created_at, wd.updated_at
+         FROM worker_documents wd
+         JOIN workers w ON wd.worker_id = w.id
+         JOIN companies co ON w.company_id = co.id
+         JOIN worker_document_types wdt ON wd.document_type_id = wdt.id
+         WHERE wd.status IN ('PENDING', 'UNDER_REVIEW')
+         ORDER BY wd.created_at ASC`
+      )
+      .all();
+
+    const documents = (docs.results || []).map((doc: any) => ({
+      ...doc,
+      days_remaining: calculateDaysRemaining(doc.expiry_date as string | null),
+    }));
+
+    return c.json({
+      success: true,
+      data: documents,
+    });
+  } catch (error) {
+    console.error('Error fetching pending documents:', error);
+    return c.json({ error: 'Failed to fetch pending documents', message: (error as Error).message }, 500);
+  }
+});
+
+/**
  * GET /api/documents/worker/:workerId - Obtener documentos de un trabajador
  */
 documents.get('/worker/:workerId', async (c) => {

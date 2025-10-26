@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useWorkerProfile } from '../hooks/useCompany';
+import { useWorkerProfile, useDocumentTypes, useWorkerDocuments } from '../hooks/useCompany';
 import { DocumentGrid } from '../components/DocumentGrid';
 import DocumentUploadForm from '../components/DocumentUploadForm';
 import { Boton } from '../components/ui/Boton';
@@ -17,7 +17,6 @@ import {
   Calendar,
   FileText,
 } from 'lucide-react';
-import type { WorkerDocumentType } from '../types/company';
 import { formatRut } from '../utils/rut';
 
 export default function WorkerProfilePage() {
@@ -25,72 +24,22 @@ export default function WorkerProfilePage() {
   const { usuario, cerrarSesion } = useAuth();
   const navigate = useNavigate();
   const { profile, loading, fetchProfile } = useWorkerProfile(workerId || '');
+  const { documentTypes, fetchDocumentTypes } = useDocumentTypes();
+  const { documents, uploadDocument, fetchDocuments: fetchWorkerDocuments } = useWorkerDocuments(workerId || '');
 
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [uploadError, setUploadError] = useState<string | undefined>();
   const [uploadSuccess, setUploadSuccess] = useState<string | undefined>();
   const [uploading, setUploading] = useState(false);
-  const [documentTypes, setDocumentTypes] = useState<WorkerDocumentType[]>([]);
 
-  // Cargar perfil y obtener tipos de documentos
+  // Cargar perfil, tipos de documentos, y documentos del trabajador
   useEffect(() => {
     if (workerId) {
       fetchProfile();
-      // TODO: Cargar tipos de documentos desde API o usar valores hardcodeados
-      setDocumentTypes([
-        {
-          id: 'cedula',
-          code: 'CEDULA',
-          name: 'Cédula de Identidad',
-          description: 'Documento de identidad válido',
-          requires_front_back: true,
-          requires_expiry_date: true,
-          order_index: 1,
-          created_at: '',
-        },
-        {
-          id: 'contrato',
-          code: 'CONTRATO',
-          name: 'Contrato de Trabajo',
-          description: 'Acuerdo laboral vigente',
-          requires_front_back: false,
-          requires_expiry_date: false,
-          order_index: 2,
-          created_at: '',
-        },
-        {
-          id: 'ds44',
-          code: 'DS_44',
-          name: 'Información DS 44',
-          description: 'Registro de información de riesgos',
-          requires_front_back: false,
-          requires_expiry_date: true,
-          order_index: 3,
-          created_at: '',
-        },
-        {
-          id: 'riohs',
-          code: 'RIOHS',
-          name: 'Registro Entrega RIOHS',
-          description: 'Constancia de entrega de RIOHS',
-          requires_front_back: false,
-          requires_expiry_date: true,
-          order_index: 4,
-          created_at: '',
-        },
-        {
-          id: 'epp',
-          code: 'EPP',
-          name: 'Registro Entrega EPP',
-          description: 'Constancia de entrega de equipos de protección',
-          requires_front_back: false,
-          requires_expiry_date: true,
-          order_index: 5,
-          created_at: '',
-        },
-      ]);
+      fetchDocumentTypes();
+      fetchWorkerDocuments();
     }
-  }, [workerId, fetchProfile]);
+  }, [workerId, fetchProfile, fetchDocumentTypes, fetchWorkerDocuments]);
 
   if (!profile && loading) {
     return (
@@ -146,9 +95,8 @@ export default function WorkerProfilePage() {
   }
 
   const worker = profile.worker;
-  const documents = profile.documents || [];
 
-  const handleUploadSubmit = async (_data: {
+  const handleUploadSubmit = async (data: {
     document_type_id: string;
     emission_date?: string;
     expiry_date?: string;
@@ -159,14 +107,28 @@ export default function WorkerProfilePage() {
       setUploadError(undefined);
       setUploading(true);
 
-      // TODO: Implementar upload a R2 y API call
-      // Por ahora, solo mostramos un mensaje de éxito
+      // TODO: Upload files to R2 and get fileKeys
+      // For now, simulating the upload
+      const file_r2_key = `documents/${workerId}/${data.file.name}`;
+      const file_r2_key_back = data.file_back ? `documents/${workerId}/${data.file_back.name}` : undefined;
+
+      await uploadDocument({
+        document_type_id: data.document_type_id,
+        emission_date: data.emission_date,
+        expiry_date: data.expiry_date,
+        file_r2_key,
+        file_r2_key_back,
+        file_name: data.file.name,
+        file_size: data.file.size,
+        mime_type: data.file.type,
+      });
+
       setUploadSuccess('Documento subido exitosamente. Pendiente de revisión');
       setShowUploadForm(false);
       setTimeout(() => setUploadSuccess(undefined), 3000);
 
-      // Recargar perfil
-      await fetchProfile();
+      // Recargar documentos
+      await fetchWorkerDocuments();
     } catch (err) {
       setUploadError(
         err instanceof Error ? err.message : 'Error al subir el documento'
@@ -317,9 +279,9 @@ export default function WorkerProfilePage() {
             <DocumentGrid
               documents={documents}
               documentTypes={documentTypes}
-              loading={loading}
+              loading={uploading}
               onUploadClick={() => setShowUploadForm(true)}
-              isAdmin={false}
+              isAdmin={usuario?.role === 'admin'}
             />
           </div>
         </div>

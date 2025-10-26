@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Edit2, Trash2, User } from 'lucide-react';
+import { Search, Plus, User } from 'lucide-react';
 import { WorkerCard } from './WorkerCard';
 import type { WorkerModel } from '../types/company';
 import { stripRutFormatting } from '../utils/rut';
@@ -152,35 +152,13 @@ export default function WorkerList({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWorkers.map(worker => (
-            <div key={worker.id} className="relative group">
-              <div
-                onClick={() => companyId && navigate(`/company/${companyId}/worker/${worker.id}`)}
-                className="cursor-pointer"
-              >
-                <WorkerCard
-                  worker={worker}
-                  onSelect={() => {}}
-                />
-              </div>
-              
-              {/* Acciones rápidas en hover */}
-              <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-end p-4 space-x-2">
-                <button
-                  onClick={() => onEditClick(worker)}
-                  className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  <span>Editar</span>
-                </button>
-                <button
-                  onClick={() => onDeleteClick(worker)}
-                  className="flex items-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Eliminar</span>
-                </button>
-              </div>
-            </div>
+            <WorkerCard
+              key={worker.id}
+              worker={worker}
+              onAccess={() => companyId && navigate(`/company/${companyId}/worker/${worker.id}`)}
+              onEdit={onEditClick}
+              onDelete={onDeleteClick}
+            />
           ))}
         </div>
       )}

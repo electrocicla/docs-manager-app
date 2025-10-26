@@ -6,6 +6,7 @@ import type {
   WorkerModel,
   WorkerInput,
   WorkerDocument,
+  WorkerDocumentType,
   WorkerProfile,
 } from '../types/company';
 import { clienteHttp } from '../api/cliente-http';
@@ -298,5 +299,162 @@ export function useAdminDocuments() {
     error,
     fetchPendingDocuments,
     updateDocumentStatus,
+  };
+}
+
+/**
+ * Hook para obtener tipos de documentos requeridos
+ */
+export function useDocumentTypes() {
+  const [documentTypes, setDocumentTypes] = useState<WorkerDocumentType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDocumentTypes = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = await clienteHttp.get<{ data: WorkerDocumentType[] }>(
+        '/documents/types',
+        { requiresAuth: true }
+      );
+
+      const types = Array.isArray(payload?.data) ? payload.data : [];
+      setDocumentTypes(types);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    documentTypes,
+    loading,
+    error,
+    fetchDocumentTypes,
+  };
+}
+
+/**
+ * Hook para gestionar documentos de un trabajador
+ */
+export function useWorkerDocuments(workerId: string) {
+  const [documents, setDocuments] = useState<WorkerDocument[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDocuments = useCallback(async () => {
+    if (!workerId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = await clienteHttp.get<{ data: WorkerDocument[] }>(
+        `/documents/worker/${workerId}`,
+        { requiresAuth: true }
+      );
+
+      const docs = Array.isArray(payload?.data) ? payload.data : [];
+      setDocuments(docs);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [workerId]);
+
+  const uploadDocument = useCallback(
+    async (docData: {
+      document_type_id: string;
+      emission_date?: string;
+      expiry_date?: string;
+      file_r2_key: string;
+      file_r2_key_back?: string;
+      file_name?: string;
+      file_size?: number;
+      mime_type?: string;
+    }) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const payload = await clienteHttp.post<{ data: WorkerDocument }>(
+          '/documents',
+          {
+            worker_id: workerId,
+            ...docData,
+          },
+          { requiresAuth: true }
+        );
+
+        const created = payload?.data;
+        if (created) {
+          setDocuments(prev => [...prev, created]);
+        }
+        return created;
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'Error desconocido';
+        setError(errMsg);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [workerId]
+  );
+
+  const updateDocumentStatus = useCallback(
+    async (docId: string, status: string, adminComments?: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const payload = await clienteHttp.put<{ data: WorkerDocument }>(
+          `/documents/${docId}`,
+          { status, admin_comments: adminComments },
+          { requiresAuth: true }
+        );
+
+        const updated = payload?.data;
+        if (updated) {
+          setDocuments(prev => prev.map(d => d.id === docId ? updated : d));
+        }
+        return updated;
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : 'Error desconocido';
+        setError(errMsg);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const deleteDocument = useCallback(async (docId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await clienteHttp.delete<void>(`/documents/${docId}`, { requiresAuth: true });
+      setDocuments(prev => prev.filter(d => d.id !== docId));
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errMsg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    documents,
+    loading,
+    error,
+    fetchDocuments,
+    uploadDocument,
+    updateDocumentStatus,
+    deleteDocument,
   };
 }
