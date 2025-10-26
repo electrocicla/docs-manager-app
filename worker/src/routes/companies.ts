@@ -126,15 +126,15 @@ companies.post('/', async (c) => {
         userId,
         name,
         rut,
-        industry || null,
-        address || null,
+        industry || '',          // ✅ SOLUCIÓN: string vacío en lugar de null
+        address || '',           // ✅ SOLUCIÓN: string vacío en lugar de null
         city,
         region,
-        phone || null,
-        email || null,
-        website || null,
-        employees_count || null,
-        description || null,
+        phone || '',             // ✅ SOLUCIÓN: string vacío en lugar de null
+        email || '',             // ✅ SOLUCIÓN: string vacío en lugar de null
+        website || '',           // ✅ SOLUCIÓN: string vacío en lugar de null
+        employees_count || 0,    // ✅ SOLUCIÓN: 0 en lugar de null
+        description || '',       // ✅ SOLUCIÓN: string vacío en lugar de null
         'ACTIVE',
         now,
         now
