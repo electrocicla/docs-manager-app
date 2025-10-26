@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useCompanies } from './useCompany';
-import type { Company } from '../types/company';
+import type { CompanyInput } from '../types/company';
 
 /**
  * Hook mejorado para gestión de empresas con carga automática
@@ -18,15 +18,15 @@ export function useCompany() {
 
   // Cargar empresas al montar
   useEffect(() => {
-    fetchCompanies();
+    fetchCompanies().catch(() => undefined);
   }, [fetchCompanies]);
 
   return {
     companies,
     loading,
     error,
-    createCompany: async (data: Partial<Company>) => {
-      return createCompany(data as any);
+    createCompany: async (data: CompanyInput) => {
+      return createCompany(data);
     },
     updateCompany,
     deleteCompany,

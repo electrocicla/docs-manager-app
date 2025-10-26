@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Building2, Phone, Mail, MapPin, Globe, Users, FileText, X, Loader } from 'lucide-react';
-import type { Company } from '../types/company';
-import { formatRutInput, isValidRut } from '../utils/rut';
+import type { Company, CompanyInput } from '../types/company';
+import { formatRutInput, isValidRut, normalizeRut } from '../utils/rut';
 
 interface CompanyFormProps {
   company?: Company;
-  onSubmit: (data: Partial<Company>) => Promise<void>;
+  onSubmit: (data: CompanyInput) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -54,7 +54,7 @@ export default function CompanyForm({
     if (company) {
       setFormData({
         name: company.name || '',
-        rut: formatRutInput(company.rut || ''),
+  rut: formatRutInput(company.rut || ''),
         industry: company.industry || '',
         address: company.address || '',
         city: company.city || '',
@@ -106,7 +106,7 @@ export default function CompanyForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    const nextValue = name === 'rut' ? formatRutInput(value) : value;
+  const nextValue = name === 'rut' ? formatRutInput(value) : value;
     setFormData(prev => ({
       ...prev,
       [name]: nextValue,
@@ -131,9 +131,9 @@ export default function CompanyForm({
     try {
       // Convertir campos numéricos
       const employeesCountValue = formData.employees_count.trim();
-      const dataToSubmit: Partial<Company> = {
+      const dataToSubmit: CompanyInput = {
         name: formData.name.trim(),
-        rut: formData.rut.trim(),
+        rut: normalizeRut(formData.rut),
         industry: formData.industry.trim() || undefined,
         address: formData.address.trim() || undefined,
         city: formData.city.trim(),
@@ -141,7 +141,7 @@ export default function CompanyForm({
         phone: formData.phone.trim() || undefined,
         email: formData.email.trim() || undefined,
         website: formData.website.trim() || undefined,
-        employees_count: employeesCountValue ? Number(employeesCountValue) : undefined,
+  employees_count: employeesCountValue ? Number(employeesCountValue) : undefined,
         description: formData.description.trim() || undefined,
       };
 

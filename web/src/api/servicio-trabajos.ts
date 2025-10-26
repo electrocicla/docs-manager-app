@@ -6,7 +6,10 @@ import type {
   SolicitudCrearCotizacion,
   SolicitudAceptarCotizacion,
   RespuestaCotizacion,
+  EstadoTrabajo,
+  EstadoCotizacion,
 } from '../types';
+import type { EtiquetaColor } from '../types/ui';
 
 /**
  * Servicio de Trabajos
@@ -30,11 +33,11 @@ export class ServicioTrabajos {
     limit?: number;
   }): Promise<{ jobs: Trabajo[] }> {
     const params = new URLSearchParams();
-    
+
     if (filtros?.status) {
       params.append('status', filtros.status);
     }
-    
+
     if (filtros?.limit) {
       params.append('limit', filtros.limit.toString());
     }
@@ -61,12 +64,12 @@ export class ServicioTrabajos {
    */
   async crearCotizacion(
     trabajoId: string,
-    datos: SolicitudCrearCotizacion
+    datos: SolicitudCrearCotizacion,
   ): Promise<RespuestaCotizacion> {
     return clienteHttp.post<RespuestaCotizacion>(
       `/jobs/${trabajoId}/quotes`,
       datos,
-      { requiresAuth: true }
+      { requiresAuth: true },
     );
   }
 
@@ -75,12 +78,12 @@ export class ServicioTrabajos {
    */
   async aceptarCotizacion(
     trabajoId: string,
-    datos: SolicitudAceptarCotizacion
+    datos: SolicitudAceptarCotizacion,
   ): Promise<{ success: boolean; message: string }> {
     return clienteHttp.post<{ success: boolean; message: string }>(
       `/jobs/${trabajoId}/accept-quote`,
       datos,
-      { requiresAuth: true }
+      { requiresAuth: true },
     );
   }
 
@@ -88,19 +91,19 @@ export class ServicioTrabajos {
    * Marcar trabajo como finalizado (profesional)
    */
   async finalizarTrabajo(
-    trabajoId: string
+    trabajoId: string,
   ): Promise<{ success: boolean; message: string }> {
     return clienteHttp.post<{ success: boolean; message: string }>(
       `/jobs/${trabajoId}/finish`,
       {},
-      { requiresAuth: true }
+      { requiresAuth: true },
     );
   }
 
   /**
    * Obtener etiqueta legible del estado
    */
-  obtenerEtiquetaEstado(estado: string): string {
+  obtenerEtiquetaEstado(estado: EstadoTrabajo | string): string {
     const etiquetas: Record<string, string> = {
       POR_REVISAR: 'Por Revisar',
       REVISION_EN_PROGRESO: 'Revisión en Progreso',
@@ -115,16 +118,21 @@ export class ServicioTrabajos {
   /**
    * Obtener color del estado para UI
    */
-  obtenerColorEstado(estado: string): string {
-    const colores: Record<string, string> = {
+  obtenerColorEstado(
+    estado: EstadoTrabajo | EstadoCotizacion | string,
+  ): EtiquetaColor {
+    const colores: Record<string, EtiquetaColor> = {
       POR_REVISAR: 'gray',
       REVISION_EN_PROGRESO: 'blue',
       COTIZACION: 'yellow',
       TRABAJO_EN_PROGRESO: 'indigo',
       FINALIZADO: 'green',
+      PENDING: 'yellow',
+      ACCEPTED: 'green',
+      REJECTED: 'gray',
     };
 
-    return colores[estado] || 'gray';
+    return colores[estado] ?? 'gray';
   }
 
   /**

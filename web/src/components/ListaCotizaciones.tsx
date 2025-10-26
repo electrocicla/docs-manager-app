@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { DollarSign, Check, X, User } from 'lucide-react';
 import { Cotizacion, EstadoCotizacion } from '../types';
 import { servicioTrabajos } from '../api/servicio-trabajos';
 import { Tarjeta } from './ui/Tarjeta';
 import { Boton } from './ui/Boton';
 import { Etiqueta } from './ui/Etiqueta';
+import { formatDateTime } from '../utils/date';
 
 interface PropiedadesListaCotizaciones {
   cotizaciones: Cotizacion[];
@@ -29,21 +28,6 @@ export function ListaCotizaciones({
 }: PropiedadesListaCotizaciones) {
   const [aceptando, setAceptando] = useState<string | null>(null);
   const [rechazando, setRechazando] = useState<string | null>(null);
-
-  const formatearFecha = (fecha: string) => {
-    return format(new Date(fecha), 'dd/MM/yyyy HH:mm', { locale: es });
-  };
-
-  const obtenerColorEstado = (estado: EstadoCotizacion) => {
-    switch (estado) {
-      case 'ACCEPTED':
-        return 'green';
-      case 'REJECTED':
-        return 'gray';
-      default:
-        return 'yellow';
-    }
-  };
 
   const obtenerEtiquetaEstado = (estado: EstadoCotizacion) => {
     switch (estado) {
@@ -100,13 +84,13 @@ export function ListaCotizaciones({
                   Profesional #{cotizacion.professional_id}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {formatearFecha(cotizacion.created_at)}
+                  {formatDateTime(cotizacion.created_at)}
                 </p>
               </div>
             </div>
             <Etiqueta
               texto={obtenerEtiquetaEstado(cotizacion.status)}
-              color={obtenerColorEstado(cotizacion.status)}
+              color={servicioTrabajos.obtenerColorEstado(cotizacion.status)}
             />
           </div>
 

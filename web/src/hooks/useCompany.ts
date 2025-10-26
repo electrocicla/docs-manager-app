@@ -1,6 +1,13 @@
-import { useState, useCallback } from 'react';
-import { Company, Worker, WorkerProfile } from '../types/company';
-import type { WorkerDocument } from '../types/company';
+import { useState, useCallback, useEffect } from 'react';
+import type {
+  Company,
+  CompanyInput,
+  UpdateCompanyPayload,
+  Worker,
+  WorkerInput,
+  WorkerDocument,
+  WorkerProfile,
+} from '../types/company';
 import { config } from '../config';
 
 export function useCompanies() {
@@ -17,19 +24,28 @@ export function useCompanies() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      
-      if (!response.ok) throw new Error('Error al cargar empresas');
-      
-      const data = await response.json();
-      setCompanies(data);
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload.error === 'string' && payload.error) ||
+          'Error al cargar empresas';
+        throw new Error(message);
+      }
+
+      const results = Array.isArray(payload?.data) ? (payload.data as Company[]) : [];
+      setCompanies(results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const createCompany = useCallback(async (company: Omit<Company, 'id' | 'created_at' | 'updated_at'>) => {
+  const createCompany = useCallback(async (company: CompanyInput) => {
     setLoading(true);
     setError(null);
     try {
@@ -42,21 +58,33 @@ export function useCompanies() {
         body: JSON.stringify(company),
       });
       
-      if (!response.ok) throw new Error('Error al crear empresa');
-      
-      const newCompany = await response.json();
-      setCompanies(prev => [...prev, newCompany]);
-      return newCompany;
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload.error === 'string' && payload.error) ||
+          'Error al crear empresa';
+        throw new Error(message);
+      }
+
+      const created = payload?.data as Company | undefined;
+
+      if (!created) {
+        throw new Error('Respuesta inválida del servidor al crear empresa');
+      }
+
+      setCompanies(prev => [...prev, created]);
+      return created;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error desconocido';
-      setError(message);
-      throw err;
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const updateCompany = useCallback(async (id: string, updates: Partial<Company>) => {
+  const updateCompany = useCallback(async (id: string, updates: UpdateCompanyPayload) => {
     setLoading(true);
     setError(null);
     try {
@@ -69,14 +97,27 @@ export function useCompanies() {
         body: JSON.stringify(updates),
       });
       
-      if (!response.ok) throw new Error('Error al actualizar empresa');
-      
-      const updated = await response.json();
-      setCompanies(prev => prev.map(c => c.id === id ? updated : c));
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload.error === 'string' && payload.error) ||
+          'Error al actualizar empresa';
+        throw new Error(message);
+      }
+
+      const updated = payload?.data as Company | undefined;
+
+      if (!updated) {
+        throw new Error('Respuesta inválida del servidor al actualizar empresa');
+      }
+
+      setCompanies(prev => prev.map(c => (c.id === id ? updated : c)));
       return updated;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      throw err;
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -92,13 +133,21 @@ export function useCompanies() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      
-      if (!response.ok) throw new Error('Error al eliminar empresa');
-      
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload.error === 'string' && payload.error) ||
+          'Error al eliminar empresa';
+        throw new Error(message);
+      }
+
       setCompanies(prev => prev.filter(c => c.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      throw err;
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -130,19 +179,28 @@ export function useWorkers(companyId: string) {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      
-      if (!response.ok) throw new Error('Error al cargar trabajadores');
-      
-      const data = await response.json();
-      setWorkers(data.data || []);
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload.error === 'string' && payload.error) ||
+          'Error al cargar trabajadores';
+        throw new Error(message);
+      }
+
+      const workerList = Array.isArray(payload?.data) ? (payload.data as Worker[]) : [];
+      setWorkers(workerList);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
   }, [companyId]);
 
-  const createWorker = useCallback(async (worker: Omit<Worker, 'id' | 'created_at' | 'updated_at'>) => {
+  const createWorker = useCallback(async (worker: WorkerInput) => {
     setLoading(true);
     setError(null);
     try {
@@ -155,14 +213,27 @@ export function useWorkers(companyId: string) {
         body: JSON.stringify(worker),
       });
       
-      if (!response.ok) throw new Error('Error al crear trabajador');
-      
-      const newWorker = await response.json();
-      setWorkers(prev => [...prev, newWorker]);
-      return newWorker;
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload.error === 'string' && payload.error) ||
+          'Error al crear trabajador';
+        throw new Error(message);
+      }
+
+      const created = payload?.data as Worker | undefined;
+
+      if (!created) {
+        throw new Error('Respuesta inválida del servidor al crear trabajador');
+      }
+
+      setWorkers(prev => [...prev, created]);
+      return created;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      throw err;
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -178,17 +249,29 @@ export function useWorkers(companyId: string) {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      
-      if (!response.ok) throw new Error('Error al eliminar trabajador');
-      
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (payload && typeof payload.error === 'string' && payload.error) ||
+          'Error al eliminar trabajador';
+        throw new Error(message);
+      }
+
       setWorkers(prev => prev.filter(w => w.id !== workerId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      throw err;
+      const error = err instanceof Error ? err : new Error('Error desconocido');
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchWorkers().catch(() => undefined);
+  }, [fetchWorkers]);
 
   return {
     workers,

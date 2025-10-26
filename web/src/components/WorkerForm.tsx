@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { X, Loader, User, Mail, Phone, Briefcase, MapPin } from 'lucide-react';
-import type { Worker } from '../types/company';
-import { formatRutInput, isValidRut } from '../utils/rut';
+import type { Worker, WorkerInput } from '../types/company';
+import { formatRutInput, isValidRut, normalizeRut } from '../utils/rut';
 
 interface WorkerFormProps {
   companyId: string;
   worker?: Worker;
-  onSubmit: (data: Partial<Worker>) => Promise<void>;
+  onSubmit: (data: WorkerInput) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -51,7 +51,7 @@ export default function WorkerForm({
       setFormData({
         first_name: worker.first_name || '',
         last_name: worker.last_name || '',
-        rut: formatRutInput(worker.rut || ''),
+  rut: formatRutInput(worker.rut || ''),
         email: worker.email || '',
         phone: worker.phone || '',
         job_title: worker.job_title || '',
@@ -114,11 +114,11 @@ export default function WorkerForm({
 
     setSubmitting(true);
     try {
-      const dataToSubmit: Partial<Worker> = {
+      const dataToSubmit: WorkerInput = {
         company_id: companyId,
         first_name: formData.first_name.trim(),
         last_name: formData.last_name.trim(),
-        rut: formData.rut.trim(),
+        rut: normalizeRut(formData.rut),
         email: formData.email.trim() || undefined,
         phone: formData.phone.trim() || undefined,
         job_title: formData.job_title.trim() || undefined,

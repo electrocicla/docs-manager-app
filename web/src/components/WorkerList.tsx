@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Edit2, Trash2, User } from 'lucide-react';
 import { WorkerCard } from './WorkerCard';
 import type { Worker } from '../types/company';
+import { stripRutFormatting } from '../utils/rut';
 
 interface WorkerListProps {
   workers: Worker[];
@@ -36,10 +37,13 @@ export default function WorkerList({
       // Búsqueda por nombre, RUT, email, puesto
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
+        const normalizedQuery = stripRutFormatting(searchQuery).toLowerCase();
         const fullName = `${worker.first_name} ${worker.last_name}`.toLowerCase();
+        const workerRutDigits = stripRutFormatting(worker.rut).toLowerCase();
         return (
           fullName.includes(query) ||
-          worker.rut?.toLowerCase().includes(query) ||
+          worker.rut.toLowerCase().includes(query) ||
+          (normalizedQuery.length > 0 && workerRutDigits.includes(normalizedQuery)) ||
           worker.email?.toLowerCase().includes(query) ||
           worker.job_title?.toLowerCase().includes(query)
         );

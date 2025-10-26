@@ -18,6 +18,7 @@ import {
   FileText,
 } from 'lucide-react';
 import type { WorkerDocumentType } from '../types/company';
+import { formatRut } from '../utils/rut';
 
 export default function WorkerProfilePage() {
   const { workerId, companyId } = useParams<{ workerId: string; companyId: string }>();
@@ -251,7 +252,7 @@ export default function WorkerProfilePage() {
                   <FileText className="w-5 h-5 text-primary-600" />
                   <label className="text-sm font-medium text-gray-700">RUT</label>
                 </div>
-                <p className="text-lg font-semibold text-gray-900">{worker.rut}</p>
+                <p className="text-lg font-semibold text-gray-900">{formatRut(worker.rut)}</p>
               </div>
 
               {/* Email */}

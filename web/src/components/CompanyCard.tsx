@@ -1,5 +1,6 @@
 import { Building2, Users, Mail, Phone, Edit2, Trash2, ChevronRight } from 'lucide-react';
 import type { Company } from '../types/company';
+import { formatRut } from '../utils/rut';
 
 interface CompanyCardProps {
   company: Company;
@@ -39,7 +40,9 @@ export function CompanyCard({
             )}
             <div>
               <h3 className="text-lg font-bold text-gray-900">{company.name}</h3>
-              <p className="text-sm text-gray-500">RUT: {company.rut || 'N/A'}</p>
+              <p className="text-sm text-gray-500">
+                RUT: {company.rut ? formatRut(company.rut) : 'N/A'}
+              </p>
             </div>
           </div>
 

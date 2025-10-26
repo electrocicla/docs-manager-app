@@ -2,6 +2,8 @@ const MULTIPLIERS_SEQUENCE = [2, 3, 4, 5, 6, 7] as const;
 
 const cleanRutValue = (rut: string): string => rut.replace(/[^0-9kK]/g, '').toUpperCase();
 
+export const stripRutFormatting = (rut: string): string => cleanRutValue(rut);
+
 const calculateVerificationDigit = (numericPart: string): string => {
   let sum = 0;
   let multiplierIndex = 0;
@@ -41,7 +43,7 @@ export const isValidRut = (rut: string): boolean => {
   return calculateVerificationDigit(numericPart) === verificationDigit;
 };
 
-export const formatRut = (rut: string): string => {
+export const normalizeRut = (rut: string): string => {
   const cleaned = cleanRutValue(rut);
 
   if (cleaned.length <= 1) {
@@ -50,6 +52,21 @@ export const formatRut = (rut: string): string => {
 
   const numericPart = cleaned.slice(0, -1);
   const verificationDigit = cleaned.slice(-1);
+
+  return `${numericPart}-${verificationDigit}`;
+};
+
+export const formatRut = (rut: string): string => {
+  const normalized = normalizeRut(rut);
+
+  const separatorIndex = normalized.indexOf('-');
+
+  if (separatorIndex <= 0) {
+    return normalized;
+  }
+
+  const numericPart = normalized.slice(0, separatorIndex);
+  const verificationDigit = normalized.slice(separatorIndex + 1);
 
   const reversed = numericPart.split('').reverse();
   const grouped = [] as string[];

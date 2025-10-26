@@ -6,7 +6,8 @@ import WorkerList from '../components/WorkerList';
 import WorkerForm from '../components/WorkerForm';
 import { Boton } from '../components/ui/Boton';
 import { ArrowLeft, LogOut, AlertCircle, Building2, Users } from 'lucide-react';
-import type { Company, Worker } from '../types/company';
+import type { Company, Worker, WorkerInput } from '../types/company';
+import { formatRut } from '../utils/rut';
 
 export default function CompanyDetailsPage() {
   const { companyId } = useParams<{ companyId: string }>();
@@ -47,14 +48,14 @@ export default function CompanyDetailsPage() {
     setError(undefined);
   };
 
-  const handleFormSubmit = async (data: Partial<Worker>) => {
+  const handleFormSubmit = async (data: WorkerInput) => {
     try {
       setError(undefined);
       if (editingWorker) {
         // TODO: Implementar updateWorker en hook
         setSuccess('Trabajador actualizado exitosamente');
       } else {
-        await createWorker(data as any);
+        await createWorker(data);
         setSuccess('Trabajador creado exitosamente');
       }
       setShowForm(false);
@@ -137,7 +138,7 @@ export default function CompanyDetailsPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
             <div>
               <p className="text-sm text-gray-600">RUT</p>
-              <p className="font-semibold text-gray-900">{company.rut}</p>
+              <p className="font-semibold text-gray-900">{company.rut ? formatRut(company.rut) : '-'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Empleados</p>
