@@ -1,5 +1,6 @@
 import { User, Mail, Phone } from 'lucide-react';
 import type { Worker } from '../types/company';
+import { formatRut } from '../utils/rut';
 
 interface WorkerCardProps {
   worker: Worker;
@@ -51,7 +52,7 @@ export function WorkerCard({ worker, documentsStatus, onSelect }: WorkerCardProp
         <h3 className="font-bold text-gray-900">
           {worker.first_name} {worker.last_name}
         </h3>
-        <p className="text-sm text-gray-600 mb-3">RUT: {worker.rut}</p>
+        <p className="text-sm text-gray-600 mb-3">RUT: {formatRut(worker.rut)}</p>
 
         <div className="space-y-1 text-xs text-gray-600 mb-4">
           {worker.job_title && (

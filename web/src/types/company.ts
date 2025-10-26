@@ -22,6 +22,22 @@ export interface Company {
   updated_at: string;
 }
 
+export interface CompanyInput {
+  name: string;
+  rut: string;
+  industry?: string;
+  address?: string;
+  city: string;
+  region: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  employees_count?: number;
+  description?: string;
+}
+
+export type UpdateCompanyPayload = Partial<CompanyInput>;
+
 export interface Worker {
   id: string;
   company_id: string;
@@ -37,6 +53,18 @@ export interface Worker {
   status: 'ACTIVE' | 'INACTIVE';
   created_at: string;
   updated_at: string;
+}
+
+export interface WorkerInput {
+  company_id: string;
+  first_name: string;
+  last_name: string;
+  rut: string;
+  email?: string;
+  phone?: string;
+  job_title?: string;
+  department?: string;
+  additional_comments?: string;
 }
 
 export interface WorkerDocumentType {

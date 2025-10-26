@@ -1,13 +1,42 @@
 import { useState, useEffect } from 'react';
 import { Building2, Phone, Mail, MapPin, Globe, Users, FileText, X, Loader } from 'lucide-react';
-import type { Company } from '../types/company';
+import type { Company, CompanyInput } from '../types/company';
+import { formatRutInput, isValidRut, normalizeRut } from '../utils/rut';
 
 interface CompanyFormProps {
   company?: Company;
-  onSubmit: (data: Partial<Company>) => Promise<void>;
+  onSubmit: (data: CompanyInput) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
+
+interface CompanyFormState {
+  name: string;
+  rut: string;
+  industry: string;
+  address: string;
+  city: string;
+  region: string;
+  phone: string;
+  email: string;
+  website: string;
+  employees_count: string;
+  description: string;
+}
+
+const INITIAL_STATE: CompanyFormState = {
+  name: '',
+  rut: '',
+  industry: '',
+  address: '',
+  city: '',
+  region: '',
+  phone: '',
+  email: '',
+  website: '',
+  employees_count: '',
+  description: '',
+};
 
 export default function CompanyForm({
   company,
@@ -15,19 +44,7 @@ export default function CompanyForm({
   onCancel,
   loading = false,
 }: CompanyFormProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    rut: '',
-    industry: '',
-    address: '',
-    city: '',
-    region: '',
-    phone: '',
-    email: '',
-    website: '',
-    employees_count: '',
-    description: '',
-  });
+  const [formData, setFormData] = useState<CompanyFormState>(INITIAL_STATE);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +54,7 @@ export default function CompanyForm({
     if (company) {
       setFormData({
         name: company.name || '',
-        rut: company.rut || '',
+        rut: formatRutInput(company.rut || ''),
         industry: company.industry || '',
         address: company.address || '',
         city: company.city || '',
@@ -61,7 +78,7 @@ export default function CompanyForm({
 
     if (!formData.rut.trim()) {
       newErrors.rut = 'El RUT es requerido';
-    } else if (!/^\d{1,2}\.\d{3}\.\d{3}[-k]$/i.test(formData.rut)) {
+    } else if (!isValidRut(formData.rut)) {
       newErrors.rut = 'Formato de RUT inválido (ej: 12.345.678-K)';
     }
 
@@ -89,9 +106,10 @@ export default function CompanyForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+    const nextValue = name === 'rut' ? formatRutInput(value) : value;
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
     // Limpiar error de este campo al escribir
     if (errors[name]) {
@@ -112,17 +130,20 @@ export default function CompanyForm({
     setSubmitting(true);
     try {
       // Convertir campos numéricos
-      const dataToSubmit = {
-        ...formData,
-        employees_count: formData.employees_count ? Number(formData.employees_count) : undefined,
+      const employeesCountValue = formData.employees_count.trim();
+      const dataToSubmit: CompanyInput = {
+        name: formData.name.trim(),
+        rut: normalizeRut(formData.rut),
+        industry: formData.industry.trim() || undefined,
+        address: formData.address.trim() || undefined,
+        city: formData.city.trim(),
+        region: formData.region.trim(),
+        phone: formData.phone.trim() || undefined,
+        email: formData.email.trim() || undefined,
+        website: formData.website.trim() || undefined,
+        employees_count: employeesCountValue ? Number(employeesCountValue) : undefined,
+        description: formData.description.trim() || undefined,
       };
-
-      // Remover campos vacíos
-      Object.keys(dataToSubmit).forEach(key => {
-        if ((dataToSubmit as any)[key] === '') {
-          (dataToSubmit as any)[key] = undefined;
-        }
-      });
 
       await onSubmit(dataToSubmit);
     } finally {

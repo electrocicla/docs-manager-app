@@ -6,7 +6,7 @@ import CompanyList from '../components/CompanyList';
 import CompanyForm from '../components/CompanyForm';
 import { Boton } from '../components/ui/Boton';
 import { LogOut, ArrowLeft, AlertCircle, Shield } from 'lucide-react';
-import type { Company } from '../types/company';
+import type { Company, CompanyInput } from '../types/company';
 
 export default function CompaniesPage() {
   const { usuario, cerrarSesion } = useAuth();
@@ -36,7 +36,7 @@ export default function CompaniesPage() {
     setError(undefined);
   };
 
-  const handleFormSubmit = async (data: Partial<Company>) => {
+  const handleFormSubmit = async (data: CompanyInput) => {
     try {
       setError(undefined);
       if (editingCompany) {

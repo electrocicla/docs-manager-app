@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, Plus, Edit2, Trash2, Building2 } from 'lucide-react';
 import { CompanyCard } from './CompanyCard';
 import type { Company } from '../types/company';
+import { stripRutFormatting } from '../utils/rut';
 
 interface CompanyListProps {
   companies: Company[];
@@ -32,9 +33,12 @@ export default function CompanyList({
       // Búsqueda por nombre, RUT, email, ciudad
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
+        const normalizedQuery = stripRutFormatting(searchQuery).toLowerCase();
         return (
           company.name.toLowerCase().includes(query) ||
           company.rut?.toLowerCase().includes(query) ||
+          (normalizedQuery.length > 0 &&
+            stripRutFormatting(company.rut || '').toLowerCase().includes(normalizedQuery)) ||
           company.email?.toLowerCase().includes(query) ||
           company.city?.toLowerCase().includes(query) ||
           company.industry?.toLowerCase().includes(query)
