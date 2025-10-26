@@ -38,6 +38,7 @@ export function useCompanies() {
     setLoading(true);
     setError(null);
     try {
+      console.log('createCompany: enviando', company);
       const payload = await clienteHttp.post<{ data: Company }>('/companies', company, {
         requiresAuth: true,
       });
@@ -51,6 +52,7 @@ export function useCompanies() {
       setCompanies(prev => [...prev, created]);
       return created;
     } catch (err) {
+      console.error('createCompany error:', err);
       const error = err instanceof Error ? err : new Error('Error desconocido');
       setError(error.message);
       throw error;

@@ -47,6 +47,7 @@ export class ClienteHttp {
       const errorData = await response.json().catch(() => ({
         error: 'Error desconocido',
       }));
+      console.error(`API Error ${response.status}:`, errorData);
       throw new ApiError(
         errorData.error || 'Error en la solicitud',
         response.status,

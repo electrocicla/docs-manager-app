@@ -142,10 +142,11 @@ export default function CompanyForm({
         phone: formData.phone.trim() || undefined,
         email: formData.email.trim() || undefined,
         website: formData.website.trim() || undefined,
-  employees_count: employeesCountValue ? Number(employeesCountValue) : undefined,
+        employees_count: employeesCountValue ? Number(employeesCountValue) : undefined,
         description: formData.description.trim() || undefined,
       };
 
+      console.log('Enviando datos de empresa:', dataToSubmit);
       await onSubmit(dataToSubmit);
     } finally {
       setSubmitting(false);
