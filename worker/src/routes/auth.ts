@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Variables, AuthContext } from '../types';
 import { generateToken, verifyToken, requireAuth } from '../lib/jwt';
 import { getUserByEmail, createUser, getUserById, createAuditLog } from '../lib/db';
+import { hashPassword, verifyPassword } from '../lib/crypto';
 import { generateId } from '../lib/db';
 
 const auth = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -150,22 +151,5 @@ auth.get('/me', requireAuth(), async (c) => {
     return c.json({ error: 'Failed to get profile', message: error.message }, 500);
   }
 });
-
-// Simple password hashing (USE bcrypt OR scrypt IN PRODUCTION)
-async function hashPassword(password: string): Promise<string> {
-  // This is a placeholder - in production use proper hashing
-  // For Workers, consider using @noble/hashes or similar
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Simple password verification
-async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hash;
-}
 
 export default auth;
