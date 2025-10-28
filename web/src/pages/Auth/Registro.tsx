@@ -47,7 +47,9 @@ export default function Registro() {
       const passwordValidation = evaluatePasswordStrength(formData.password);
       
       if (!passwordValidation.isValid) {
-        nuevosErrores.password = 'La contraseña debe tener al menos 8 caracteres';
+        nuevosErrores.password = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número';
+      } else if (passwordValidation.strength === 'weak') {
+        nuevosErrores.password = 'La contraseña es muy débil. Use mayúsculas, minúsculas, números y símbolos';
       }
     }
 

@@ -10,11 +10,11 @@ Platform for occupational risk management and documentation in Chile. Companies 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6.2-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3.1-61dafb)](https://reactjs.org/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-f38020)](https://workers.cloudflare.com/)
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue)](./EXECUTIVE_SUMMARY.md)
+[![Version](https://img.shields.io/badge/Version-1.0.1-blue)](./EXECUTIVE_SUMMARY.md)
 
 ## 🌐 Production Environment
 
-- **Frontend:** https://sr-prevencion.electrocicla.workers.dev/
+- **Frontend:** https://sr-prevencion.pages.dev/
 - **API Backend:** https://sr-prevencion.electrocicla.workers.dev/api
 - **Health Check:** https://sr-prevencion.electrocicla.workers.dev/api/health
 - **Status:** ✅ LIVE
@@ -30,12 +30,19 @@ Platform for occupational risk management and documentation in Chile. Companies 
 - Componentes UI reutilizables (InfoCard, ProcessSteps, StatCard)
 
 ### 🔒 Autenticación y Seguridad
-- Sistema de registro con validación avanzada de contraseñas
-- Requisitos: mínimo 8 caracteres, mayúsculas, minúsculas, números, caracteres especiales
-- Indicador visual de fortaleza de contraseña en tiempo real
-- Confirmación de contraseña con feedback instantáneo
-- JWT tokens con Jose library
-- Bcrypt para hash de contraseñas
+- **Sistema de registro con validación avanzada de contraseñas**
+  - Requisitos: mínimo 8 caracteres, mayúsculas, minúsculas, números, caracteres especiales
+  - Indicador visual de fortaleza de contraseña en tiempo real
+  - Confirmación de contraseña con feedback instantáneo
+
+- **Hashing Seguro PBKDF2**: 100,000 iteraciones con sal aleatoria
+- **Rate Limiting Avanzado**:
+  - Registro: 5 intentos por hora por IP
+  - Login: 5 intentos por 15 minutos por IP+email, bloqueo de 30 minutos
+- **Sanitización de Entradas**: Validación y limpieza de todos los inputs
+- **Protección contra Timing Attacks**: Comparación constante de contraseñas
+- **JWT tokens con Jose library**
+- **Auditoría de Seguridad**: Logging detallado de eventos de autenticación
 
 ### 📋 Servicios de Prevención de Riesgos
 - **RIOHS** - Reglamento Interno (Código del Trabajo Art. 153)
@@ -68,7 +75,8 @@ Platform for occupational risk management and documentation in Chile. Companies 
 - **Hono** - Framework web ultra-ligero para Workers
 - **TypeScript** - Type safety
 - **Jose** - JWT tokens
-- **Bcrypt** - Password hashing
+- **PBKDF2** - Advanced password hashing (100k iterations)
+- **Rate Limiting** - In-memory protection against abuse
 
 ### Base de Datos y Storage
 - **Cloudflare D1** - SQLite distribuido globalmente
@@ -582,12 +590,84 @@ npx wrangler tail
 
 ## 📊 Estado del Proyecto
 
-- **Última actualización:** Octubre 26, 2025
-- **Estado:** ✅ Producción con Gestión Documental Completa
+- **Última actualización:** Octubre 28, 2025
+- **Estado:** ✅ Producción con Seguridad Avanzada
 - **Versión:** 1.1.0
 - **Frontend:** https://sr-prevencion.pages.dev
 - **Backend:** https://sr-prevencion.electrocicla.workers.dev
 - **Uptime:** Monitoreado por Cloudflare
+
+## 📋 Changelog Reciente
+
+### [1.1.0] - October 28, 2025 - Security & Photo Upload Enhancement
+
+#### 🚀 New Features
+- **Photo Upload System**: Complete worker profile photo functionality
+  - Server-side photo uploads to R2 storage
+  - Secure file serving through worker endpoints
+  - Profile image display in worker cards and profiles
+  - Image validation and error handling
+
+#### 🔒 Security Enhancements
+- **Advanced Password Security**: Upgraded from SHA-256 to PBKDF2
+  - PBKDF2 with 100,000 iterations for enhanced security
+  - Constant-time password comparison to prevent timing attacks
+  - Secure salt generation using Web Crypto API
+
+- **Rate Limiting Implementation**: Comprehensive protection against abuse
+  - Registration: 5 attempts per hour per IP
+  - Login: 5 attempts per 15 minutes per IP+email with 30-minute lockout
+  - Account lockout with clear messaging and recovery time display
+
+- **Input Sanitization**: Enhanced security across all endpoints
+  - Email normalization and validation
+  - Full name sanitization and length validation
+  - Password strength requirements (8+ chars, uppercase, lowercase, numbers, symbols)
+  - SQL injection prevention with parameterized queries
+
+#### 🐛 Bug Fixes
+- **Account Creation Workflow**: Fixed registration failures
+  - Implemented proper password hashing
+  - Added duplicate email detection with clear error messages
+  - Enhanced validation feedback
+
+- **Document Status Workflow**: Corrected approval processes
+  - Fixed UNDER_REVIEW status handling
+  - Improved profile completeness calculations
+  - Enhanced document download URLs
+
+- **File Upload Issues**: Resolved photo upload problems
+  - Replaced signed URL approach with server-side uploads
+  - Fixed image loading and display issues
+  - Added comprehensive error logging
+
+#### 📈 Performance Improvements
+- **Build Optimization**: Updated to latest deployment URLs
+  - Frontend: https://sr-prevencion.pages.dev (Pages)
+  - Backend: https://sr-prevencion.electrocicla.workers.dev (Workers)
+  - Improved deployment automation
+
+#### 🔧 Technical Updates
+- **Crypto Module**: Complete rewrite with PBKDF2 implementation
+- **Authentication Routes**: Enhanced with rate limiting and sanitization
+- **Frontend Validation**: Strengthened password requirements
+- **Database Operations**: Improved error handling and logging
+
+#### 📊 Security Audit Results
+- ✅ PBKDF2 password hashing implemented
+- ✅ Rate limiting for all auth endpoints
+- ✅ Input sanitization across all forms
+- ✅ Enhanced audit logging with metadata
+- ✅ Timing attack protection
+- ✅ Account lockout mechanisms
+
+### [1.0.0] - October 23, 2025 - Production Release
+- Complete role-based document management system
+- Company and worker CRUD operations
+- Admin document review and approval workflows
+- R2 cloud storage integration
+- JWT authentication with bcrypt
+- TypeScript strict mode implementation
 
 ## 🤝 Contribución
 
