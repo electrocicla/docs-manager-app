@@ -49,6 +49,33 @@ function RutaProtegida({
   return <>{children}</>;
 }
 
+// Component para redirección inteligente según rol
+function HomeInteligente() {
+  const { usuario, cargando } = useAuth();
+
+  if (cargando) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Cargando...</div>
+      </div>
+    );
+  }
+
+  if (!usuario) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Redirigir según el rol
+  switch (usuario.role) {
+    case 'admin':
+      return <Navigate to="/admin" replace />;
+    case 'professional':
+      return <Navigate to="/profesional" replace />;
+    default:
+      return <Navigate to="/dashboard" replace />;
+  }
+}
+
 function App() {
   return (
     <Routes>
@@ -56,6 +83,9 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Registro />} />
+
+      {/* Redirección inteligente según rol */}
+      <Route path="/home" element={<HomeInteligente />} />
 
       {/* Rutas protegidas - Usuario */}
       <Route

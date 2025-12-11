@@ -26,8 +26,8 @@ export default function Login() {
 
     try {
       await iniciarSesion({ email, password });
-      // Redirigir según el rol se manejará en el hook
-      navigate('/dashboard');
+      // Redirigir a /home que distribuye al dashboard correcto según el rol
+      navigate('/home');
     } catch (err: any) {
       setError(err.data?.error || 'Error al iniciar sesión');
     } finally {
