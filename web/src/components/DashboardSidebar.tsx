@@ -31,56 +31,80 @@ export function DashboardSidebar() {
 
   // Items de navegación según rol
   const getNavItems = (): NavigationItem[] => {
-    const baseItems: NavigationItem[] = [
-      {
-        id: 'inicio',
-        label: 'Inicio',
-        icon: Home,
-        route: '/dashboard',
-      },
-      {
-        id: 'trabajos',
-        label: 'Mis Solicitudes',
-        icon: FileText,
-        route: '/dashboard', // Ver trabajos en dashboard
-        description: 'Ver todas tus solicitudes de servicios',
-      },
-      {
-        id: 'empresas',
-        label: 'Mis Empresas',
-        icon: Briefcase,
-        route: '/companies',
-        description: 'Gestiona tus empresas y trabajadores',
-      },
-    ];
+    const baseItems: NavigationItem[] = [];
 
-    // Items adicionales para admin
+    // Items específicos según rol
     if (usuario?.role === 'admin') {
-      baseItems.push({
-        id: 'admin-documentos',
-        label: 'Revisar Documentos',
-        icon: FileText,
-        route: '/admin/documents',
-        description: 'Panel de revisión de solicitudes',
-      });
-      baseItems.push({
-        id: 'profesionales',
-        label: 'Gestionar Profesionales',
-        icon: Users,
-        route: '/admin',
-        description: 'Administra profesionales y usuarios',
-      });
-    }
-
-    // Items para profesionales
-    if (usuario?.role === 'professional') {
-      baseItems.push({
-        id: 'cotizaciones',
-        label: 'Cotizar Trabajos',
-        icon: Briefcase,
-        route: '/profesional',
-        description: 'Cotiza trabajos solicitados',
-      });
+      baseItems.push(
+        {
+          id: 'inicio',
+          label: 'Panel Principal',
+          icon: Home,
+          route: '/admin',
+          description: 'Dashboard administrativo'
+        },
+        {
+          id: 'empresas',
+          label: 'Gestión de Empresas',
+          icon: Briefcase,
+          route: '/companies',
+          description: 'Gestiona empresas y trabajadores',
+        },
+        {
+          id: 'admin-documentos',
+          label: 'Revisar Documentos',
+          icon: FileText,
+          route: '/admin/documents',
+          description: 'Panel de revisión de documentos',
+        },
+        {
+          id: 'usuarios',
+          label: 'Gestionar Usuarios',
+          icon: Users,
+          route: '/admin',
+          description: 'Administra usuarios del sistema',
+        }
+      );
+    } else if (usuario?.role === 'professional') {
+      baseItems.push(
+        {
+          id: 'inicio',
+          label: 'Mi Dashboard',
+          icon: Home,
+          route: '/profesional',
+        },
+        {
+          id: 'cotizaciones',
+          label: 'Cotizar Trabajos',
+          icon: Briefcase,
+          route: '/profesional',
+          description: 'Cotiza trabajos solicitados',
+        }
+      );
+    } else {
+      // Usuario regular
+      baseItems.push(
+        {
+          id: 'inicio',
+          label: 'Inicio',
+          icon: Home,
+          route: '/dashboard',
+        },
+        {
+          id: 'trabajos',
+          label: 'Mis Solicitudes',
+          icon: FileText,
+          route: '/dashboard',
+          description: 'Ver todas tus solicitudes de servicios',
+        },
+        {
+          id: 'empresas',
+          label: 'Mis Empresas',
+          icon: Briefcase,
+          route: '/companies',
+          description: 'Gestiona tus empresas y trabajadores',
+        }
+      );
     }
 
     // Items comunes

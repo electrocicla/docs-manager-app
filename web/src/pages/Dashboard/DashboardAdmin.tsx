@@ -5,8 +5,10 @@ import { Boton } from '../../components/ui/Boton';
 import { Tarjeta } from '../../components/ui/Tarjeta';
 import { Tabla } from '../../components/ui/Tabla';
 import { FiltroEstado } from '../../components/ui/FiltroEstado';
-import { LogOut, Users, Briefcase, TrendingUp } from 'lucide-react';
+import { DashboardSidebar } from '../../components/DashboardSidebar';
+import { LogOut, Users, Briefcase, TrendingUp, FileCheck } from 'lucide-react';
 import { EstadoTrabajo } from '../../types';
+import { Link } from 'react-router-dom';
 
 export default function DashboardAdmin() {
   const { usuario, cerrarSesion } = useAuth();
@@ -61,23 +63,68 @@ export default function DashboardAdmin() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Dashboard Administrador</h1>
-          <div className="flex items-center space-x-4">
-            <span>Hola, {usuario?.full_name}</span>
-            <Boton variante="secondary" onClick={cerrarSesion}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Cerrar Sesión
-            </Boton>
-          </div>
-        </div>
-      </header>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-80 flex-shrink-0">
+        <DashboardSidebar />
+      </div>
 
-      {/* Content */}
-      <main className="container mx-auto px-4 py-8">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b border-gray-200">
+          <div className="px-6 py-4 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard Administrador</h1>
+              <p className="text-sm text-gray-600 mt-1">Panel de control administrativo</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">Hola, <span className="font-semibold">{usuario?.full_name}</span></span>
+              <Boton variante="secondary" onClick={cerrarSesion}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
+              </Boton>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto p-6">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Link to="/admin/documents" className="block">
+            <Tarjeta className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-blue-500">
+              <div className="flex items-center">
+                <FileCheck className="w-8 h-8 text-blue-600 mr-3" />
+                <div>
+                  <p className="text-lg font-bold text-gray-900">Revisar Documentos</p>
+                  <p className="text-sm text-gray-600">Panel de aprobación</p>
+                </div>
+              </div>
+            </Tarjeta>
+          </Link>
+          <Link to="/companies" className="block">
+            <Tarjeta className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-green-500">
+              <div className="flex items-center">
+                <Briefcase className="w-8 h-8 text-green-600 mr-3" />
+                <div>
+                  <p className="text-lg font-bold text-gray-900">Gestionar Empresas</p>
+                  <p className="text-sm text-gray-600">Ver todas las empresas</p>
+                </div>
+              </div>
+            </Tarjeta>
+          </Link>
+          <Tarjeta className="border-l-4 border-purple-500">
+            <div className="flex items-center">
+              <Users className="w-8 h-8 text-purple-600 mr-3" />
+              <div>
+                <p className="text-lg font-bold text-gray-900">Usuarios</p>
+                <p className="text-sm text-gray-600">Total usuarios registrados</p>
+              </div>
+            </div>
+          </Tarjeta>
+        </div>
+
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Tarjeta>
@@ -143,7 +190,8 @@ export default function DashboardAdmin() {
             />
           </div>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
